@@ -3,31 +3,38 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
 
-from db.connection import get_db, User, Session as SessionModel
+from db.connection import get_db, User, Session as SessionModel, Base, engine
 from models.user import UserCreate, UserLogin, TokenResponse, UserResponse
 
-SECRET_KEY = os.getenv("JWT_SECRET")
+SECRET_KEY = os.getenv("JWT_SECRET", "change-me-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRATION", "3600"))
 
 app = FastAPI(title="Auth Service", version="1.0.0")
 security = HTTPBearer()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
+
+
+def get_password_hash(password: str) -> str:
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):

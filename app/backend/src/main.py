@@ -1,13 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
 
-from db.connection import get_db
+from db.connection import get_db, Base, engine
 from model_loader.load_model import get_model_loader
 from routes.predictions import router as prediction_router
 from routes.senales import router as signals_router
@@ -27,6 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+
 app.include_router(prediction_router)
 app.include_router(signals_router)
 app.include_router(history_router)
@@ -38,7 +44,7 @@ def health_check(db: Session = Depends(get_db)):
     model_loaded = loader.model is not None
 
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db_status = "connected"
     except Exception:
         db_status = "disconnected"

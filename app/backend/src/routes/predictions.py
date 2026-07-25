@@ -31,7 +31,7 @@ def get_prediction(
     return result
 
 
-@router.get("/")
+@router.get("")
 def get_latest_prediction(
     pair: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),

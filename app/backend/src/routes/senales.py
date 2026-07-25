@@ -9,7 +9,7 @@ from model_loader.load_model import get_model_loader
 router = APIRouter(prefix="/signals", tags=["signals"])
 
 
-@router.get("/")
+@router.get("")
 def get_signals(
     pair: Optional[str] = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
