@@ -18,32 +18,32 @@ desplegar todo en **Render**.
 ## 1. Arquitectura
 
 ```
-                         ┌──────────────────┐
-                         │                  │
-                         │     Frontend     │
-                         │  (React / Vite)  │
-                         │                  │
-                         └───────┬────┬─────┘
-                                 │    │
-                    (1) Login    │    │  (2) Peticiones autenticadas
-                                 │    │      (ya con sesion iniciada)
-                                 ▼    ▼
-                    ┌────────────┐  ┌──────────────────┐
-                    │            │  │                  │
-                    │   Acceso   │  │     Backend      │
-                    │  (Auth)    │  │   (API + logica  │
-                    │            │  │    de negocio)    │
-                    └─────┬──────┘  └────┬─────────┬────┘
-                          │              │         │
-                          │              │         │
-                          ▼              ▼         ▼
-                    ┌───────────────────────┐  ┌──────────────┐
-                    │                       │  │              │
-                    │   PostgreSQL (Render) │  │    Modelo    │
-                    │                       │  │  (PatchTST)  │
-                    └───────────────────────┘  │  Transformer │
-                                                │              │
-                                                └──────────────┘
+                          ┌──────────────────┐
+                          │                  │
+                          │     Frontend     │
+                          │  (React / Vite)  │
+                          │                  │
+                          └───────┬────┬─────┘
+                                  │    │
+                     (1) Login    │    │  (2) Peticiones autenticadas
+                                  │    │      (ya con sesion iniciada)
+                                  ▼    ▼
+                     ┌────────────┐  ┌──────────────────┐
+                     │            │  │                  │
+                     │   Acceso   │  │     Backend      │
+                     │  (Auth)    │  │   (API + logica  │
+                     │            │  │    de negocio)    │
+                     └─────┬──────┘  └────┬─────────┬────┘
+                           │              │         │
+                           │              │         │
+                           ▼              ▼         ▼
+                     ┌───────────────────────┐  ┌──────────────┐
+                     │                       │  │              │
+                     │   PostgreSQL (Render) │  │    Modelo    │
+                     │                       │  │  (PatchTST)  │
+                     └───────────────────────┘  │  Transformer │
+                                                 │              │
+                                                 └──────────────┘
 ```
 
 ### Flujo de comunicacion
@@ -81,63 +81,65 @@ desplegar todo en **Render**.
 pen-usd-trading-deploy/
 │
 ├── README.md                        # Este archivo
+├── .gitignore
 ├── docker-compose.yml                # Levanta todo el stack en local
 ├── .env.example                      # Plantilla de variables de entorno
 │
-├── frontend/
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── package.json
-│   └── src/
-│       ├── pages/
-│       ├── components/
-│       └── services/                 # Clientes HTTP hacia Acceso y Backend
-│
-├── auth-service/                     # "Acceso"
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── requirements.txt (o package.json)
-│   └── src/
-│       ├── main.py                    # API de login/registro/JWT
-│       ├── models/                    # Modelos de tabla (usuarios, sesiones)
-│       └── db/                        # Conexion a PostgreSQL
-│
-├── backend/
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── requirements.txt
-│   └── src/
-│       ├── main.py                    # API principal (FastAPI/Express)
-│       ├── routes/
-│       │   ├── predicciones.py         # Consume el modelo
-│       │   ├── senales.py              # Alarma combinada
-│       │   └── historico.py
-│       ├── model_loader/               # Carga el checkpoint del modelo
-│       │   └── load_model.py
-│       └── db/                        # Conexion a PostgreSQL (otro esquema)
-│
-├── model/                            # Artefactos del modelo listos para servir
-│   ├── best_model.pt                   # Descargado desde el repo HF del modelo
-│   └── model_config.json
+├── app/                              # Codigo de aplicacion
+│   ├── frontend/
+│   │   ├── Dockerfile
+│   │   ├── .dockerignore
+│   │   ├── package.json
+│   │   └── src/
+│   │       ├── pages/
+│   │       ├── components/
+│   │       └── services/             # Clientes HTTP hacia Acceso y Backend
+│   │
+│   ├── auth-service/                 # "Acceso"
+│   │   ├── Dockerfile
+│   │   ├── .dockerignore
+│   │   ├── requirements.txt
+│   │   └── src/
+│   │       ├── main.py               # API de login/registro/JWT
+│   │       ├── models/               # Modelos de tabla (usuarios, sesiones)
+│   │       └── db/                   # Conexion a PostgreSQL
+│   │
+│   ├── backend/
+│   │   ├── Dockerfile
+│   │   ├── .dockerignore
+│   │   ├── requirements.txt
+│   │   └── src/
+│   │       ├── main.py               # API principal (FastAPI)
+│   │       ├── routes/
+│   │       │   ├── predictions.py    # Consume el modelo
+│   │       │   ├── senales.py        # Alarma combinada
+│   │       │   └── historico.py
+│   │       ├── model_loader/          # Carga el checkpoint del modelo
+│   │       │   └── load_model.py
+│   │       └── db/                   # Conexion a PostgreSQL (otro esquema)
+│   │
+│   └── model/                        # Artefactos del modelo listos para servir
+│       ├── best_model.pt             # Descargado desde el repo HF del modelo
+│       └── model_config.json
 │
 ├── infrastructure/                   # Infraestructura como codigo (Terraform)
 │   └── terraform/
-│       ├── main.tf                     # Recursos principales de Render
-│       ├── variables.tf                # Variables (region, plan, nombres)
-│       ├── outputs.tf                  # URLs/endpoints generados
-│       ├── providers.tf                # Provider de Render + backend de estado
-│       ├── terraform.tfvars.example    # Plantilla de valores
+│       ├── main.tf                    # Recursos principales de Render
+│       ├── variables.tf               # Variables (region, plan, nombres)
+│       ├── outputs.tf                 # URLs/endpoints generados
+│       ├── providers.tf               # Provider de Render + backend de estado
+│       ├── terraform.tfvars.example   # Plantilla de valores
 │       └── modules/
-│           ├── render-service/          # Modulo reusable por servicio (front/auth/backend)
-│           └── render-postgres/         # Modulo para la base de datos gestionada
+│           ├── render-service/         # Modulo reusable por servicio (front/auth/backend)
+│           └── render-postgres/        # Modulo para la base de datos gestionada
 │
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                      # Tests + build de las 3 imagenes en cada PR
-│       ├── cd-frontend.yml             # Deploy automatico del frontend a Render
-│       ├── cd-auth-service.yml         # Deploy automatico del servicio de Acceso
-│       ├── cd-backend.yml              # Deploy automatico del backend
-│       └── terraform-plan-apply.yml    # Plan/Apply de Terraform sobre infrastructure/
+│       ├── ci.yml                     # Tests + build de las 3 imagenes en cada PR
+│       ├── cd-frontend.yml            # Deploy automatico del frontend a Render
+│       ├── cd-auth-service.yml        # Deploy automatico del servicio de Acceso
+│       ├── cd-backend.yml             # Deploy automatico del backend
+│       └── terraform-plan-apply.yml   # Plan/Apply de Terraform sobre infrastructure/
 │
 └── docs/
     └── arquitectura.md                # Diagramas y decisiones tecnicas ampliadas
@@ -233,9 +235,9 @@ repositorio de Git.
 | Workflow | Disparador | Que hace |
 |---|---|---|
 | `ci.yml` | Cada Pull Request | Corre tests unitarios y linters de los 3 servicios, y verifica que las 3 imagenes de Docker compilen sin errores |
-| `cd-frontend.yml` | Push a `main` (cambios en `frontend/`) | Construye la imagen y dispara el deploy hook de Render para el servicio de frontend |
-| `cd-auth-service.yml` | Push a `main` (cambios en `auth-service/`) | Construye la imagen y dispara el deploy hook de Render para Acceso |
-| `cd-backend.yml` | Push a `main` (cambios en `backend/` o `model/`) | Construye la imagen, descarga el checkpoint mas reciente del modelo desde Hugging Face, y dispara el deploy hook de Render para el backend |
+| `cd-frontend.yml` | Push a `main` (cambios en `app/frontend/`) | Construye la imagen y dispara el deploy hook de Render para el servicio de frontend |
+| `cd-auth-service.yml` | Push a `main` (cambios en `app/auth-service/`) | Construye la imagen y dispara el deploy hook de Render para Acceso |
+| `cd-backend.yml` | Push a `main` (cambios en `app/backend/` o `app/model/`) | Construye la imagen, descarga el checkpoint mas reciente del modelo desde Hugging Face, y dispara el deploy hook de Render para el backend |
 | `terraform-plan-apply.yml` | PR (plan) / Push a `main` (apply) | Gestiona la infraestructura declarada en `infrastructure/terraform` |
 
 ### Deploys condicionados por carpeta ("path filtering")
@@ -260,14 +262,14 @@ Configurar en **Settings -> Secrets and variables -> Actions** del repo:
 
 ## 7. Variables de entorno por servicio
 
-### `auth-service/.env`
+### `app/auth-service/.env`
 ```
 DATABASE_URL=postgresql://usuario:password@host:5432/dbname?schema=auth
 JWT_SECRET=<secreto-para-firmar-tokens>
 JWT_EXPIRATION=3600
 ```
 
-### `backend/.env`
+### `app/backend/.env`
 ```
 DATABASE_URL=postgresql://usuario:password@host:5432/dbname?schema=trading
 AUTH_SERVICE_URL=https://acceso.tu-dominio.com
@@ -275,7 +277,7 @@ MODEL_CHECKPOINT_PATH=/app/model/best_model.pt
 BANK_SPREAD_MULTIPLIER=1.0
 ```
 
-### `frontend/.env`
+### `app/frontend/.env`
 ```
 VITE_AUTH_API_URL=https://acceso.tu-dominio.com
 VITE_BACKEND_API_URL=https://backend.tu-dominio.com
