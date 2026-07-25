@@ -3,8 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/trading?schema=trading")
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine)

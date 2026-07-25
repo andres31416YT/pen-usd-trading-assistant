@@ -2,13 +2,12 @@ import torch
 import json
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-MODEL_CHECKPOINT_PATH = os.getenv(
-    "MODEL_CHECKPOINT_PATH", "/app/model/best_model.pt"
-)
-MODEL_CONFIG_PATH = os.getenv(
-    "MODEL_CONFIG_PATH", "/app/model/model_config.json"
-)
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
+
+MODEL_CHECKPOINT_PATH = os.getenv("MODEL_CHECKPOINT_PATH")
+MODEL_CONFIG_PATH = os.getenv("MODEL_CONFIG_PATH")
 
 
 class ModelLoader:

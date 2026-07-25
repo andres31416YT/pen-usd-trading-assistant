@@ -5,11 +5,15 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
 
 from db.connection import get_db, User, Session as SessionModel
 from models.user import UserCreate, UserLogin, TokenResponse, UserResponse
 
-SECRET_KEY = os.getenv("JWT_SECRET", "change-me-in-production")
+SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRATION", "3600"))
 

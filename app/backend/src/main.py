@@ -2,6 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
 
 from db.connection import get_db
 from model_loader.load_model import get_model_loader
@@ -17,7 +21,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=os.getenv("ALLOWED_ORIGINS", "").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
