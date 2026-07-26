@@ -91,6 +91,16 @@ function PriceChart({ data }) {
   const hoverPoint = hoverIndex !== null ? points[hoverIndex] : null;
   const hoverData = hoverIndex !== null ? data[hoverIndex] : null;
 
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
   return (
     <div className="chart-container" ref={chartRef}>
       <svg
@@ -136,7 +146,7 @@ function PriceChart({ data }) {
             top: `${(hoverPoint.y / height) * 100}%`,
           }}
         >
-          <div className="tooltip-date">{hoverData.date}</div>
+          <div className="tooltip-date">{formatDate(hoverData.date)}</div>
           <div className="tooltip-price">S/. {hoverData.price.toFixed(3)}</div>
         </div>
       )}
