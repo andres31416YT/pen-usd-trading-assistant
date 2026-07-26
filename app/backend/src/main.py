@@ -42,11 +42,15 @@ def _seed_banks():
     from db.connection import SessionLocal, Bank
     db = SessionLocal()
     try:
-        existing = db.query(Bank).count()
-        if existing == 0:
-            bcp = Bank(name="BCP", spread_multiplier=3.40 / 3.760)
-            db.add(bcp)
-            db.commit()
+        seed_banks = [
+            {"name": "Sin banco", "spread_multiplier": 1.0},
+            {"name": "BCP", "spread_multiplier": 3.40 / 3.760},
+        ]
+        for seed in seed_banks:
+            existing = db.query(Bank).filter(Bank.name == seed["name"]).first()
+            if not existing:
+                db.add(Bank(name=seed["name"], spread_multiplier=seed["spread_multiplier"]))
+        db.commit()
     finally:
         db.close()
 
