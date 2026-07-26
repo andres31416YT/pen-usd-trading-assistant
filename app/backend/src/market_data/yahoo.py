@@ -88,7 +88,7 @@ def get_price_history(symbol: str = "PEN=X", timeframe: str = "1M") -> list[dict
 
 
 def get_latest_price(symbol: str = "PEN=X") -> Optional[float]:
-    payload = fetch_chart(symbol, "1m", "1d")
+    payload = fetch_chart(symbol, "1m", "5d")
     series = _extract_series(payload)
     if not series:
         return None

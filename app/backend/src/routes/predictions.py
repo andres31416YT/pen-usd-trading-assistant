@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -16,7 +20,8 @@ def _latest_market_price(pair: str) -> Optional[float]:
     symbol = symbol_map.get(pair, pair)
     try:
         return yahoo_get_latest_price(symbol)
-    except Exception:
+    except Exception as e:
+        logger.warning("Yahoo Finance failed for %s (%s): %s", pair, symbol, e)
         return None
 
 
@@ -73,11 +78,12 @@ def get_latest_prediction(
     latest = query.first()
 
     if latest is None:
+        current_price = _latest_market_price("PEN/USD")
         return {
             "direction": "neutral",
             "confidence": 0.0,
             "price_target": None,
-            "current_price": None,
+            "current_price": current_price,
             "model_version": None,
         }
 
