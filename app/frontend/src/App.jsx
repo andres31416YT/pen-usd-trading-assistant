@@ -16,7 +16,7 @@ function App() {
     if (token) {
       authAPI
         .verifyToken()
-        .then((data) => setUser(data.user))
+        .then((data) => setUser(data))
         .catch(() => {
           localStorage.removeItem('token');
           setUser(null);
