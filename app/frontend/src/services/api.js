@@ -24,7 +24,7 @@ tradingClient.interceptors.response.use(
 );
 
 export const tradingAPI = {
-  getPrediction: () => tradingClient.get('/prediction'),
+  getPrediction: ({ spread_multiplier } = {}) => tradingClient.get('/prediction', { params: { spread_multiplier: spread_multiplier ?? 1 } }),
   getSignals: () => tradingClient.get('/signals'),
   getHistory: (params) => tradingClient.get('/history', { params }),
   getPriceHistory: (params) => tradingClient.get('/history/prices', { params }),

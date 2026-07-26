@@ -10,6 +10,14 @@ import PnLDisplay from '../components/PnLDisplay';
 function Dashboard({ user }) {
   const [banks, setBanks] = useState([]);
   const [selectedBank, setSelectedBank] = useState(null);
+
+  useEffect(() => {
+    if (banks.length > 0 && !selectedBank) {
+      const defaultBank = banks.find((b) => b.name === "Sin banco") || banks[0];
+      setSelectedBank(defaultBank);
+      setBankChecked(true);
+    }
+  }, [banks, selectedBank]);
   const [balance, setBalance] = useState(null);
   const [balanceHistory, setBalanceHistory] = useState([]);
   const [currentPrice, setCurrentPrice] = useState(null);
@@ -43,12 +51,13 @@ function Dashboard({ user }) {
 
   const fetchData = useCallback(async () => {
     setError('');
+    const currentSpread = selectedBank?.spread_multiplier ?? 1;
     try {
       const [banksRes, balanceRes, historyRes, predRes, ordersRes] = await Promise.all([
         bankAPI.listBanks(),
         accountAPI.getBalance(),
         accountAPI.getBalanceHistory(30),
-        tradingAPI.getPrediction(),
+        tradingAPI.getPrediction({ spread_multiplier: currentSpread }),
         accountAPI.getOrders(),
       ]);
       setBanks(banksRes);
@@ -79,7 +88,7 @@ function Dashboard({ user }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedBank]);
 
   const timeframeToDays = {
     '1D': 1,
@@ -119,10 +128,18 @@ function Dashboard({ user }) {
     fetchPriceHistory();
   }, [fetchPriceHistory]);
 
+  const spreadMultiplier = selectedBank?.spread_multiplier ?? 1;
+  const adjustedPriceHistory = priceHistory.map((d) => ({
+    ...d,
+    price: d.price * spreadMultiplier,
+  }));
+  const adjustedCurrentPrice = currentPrice ? currentPrice * spreadMultiplier : null;
+
   const handleSelectBank = (bank) => {
     setSelectedBank(bank);
     setBankChecked(bank !== null);
     setBankOverlayOpen(false);
+    fetchPriceHistory();
   };
 
   const handleCreateOrder = async (side, amount) => {
@@ -132,7 +149,7 @@ function Dashboard({ user }) {
         pair: 'PEN/USD',
         side,
         amount: parseFloat(amount),
-        price: currentPrice || 3.76,
+        price: adjustedCurrentPrice || currentPrice || 3.76,
         bank_id: selectedBank.id,
       });
       setOrders((prev) => [res, ...prev]);
@@ -222,11 +239,11 @@ function Dashboard({ user }) {
 
         <div className="price-chart-card">
           <div className="chart-header">
-            <span className="current-price">
-              {currentPrice
-                ? `S/. ${currentPrice.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`
-                : '---'}
-            </span>
+          <span className="current-price">
+                {adjustedCurrentPrice
+                  ? `S/. ${adjustedCurrentPrice.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`
+                  : '---'}
+              </span>
             {priceHistory && priceHistory.length >= 2 && (() => {
                 const start = priceHistory[0].price;
                 const end = priceHistory[priceHistory.length - 1].price;
@@ -239,7 +256,7 @@ function Dashboard({ user }) {
                 );
               })()}
           </div>
-          <PriceChart data={priceHistory} />
+          <PriceChart data={adjustedPriceHistory} />
           <div className="timeframe-selector">
             {['1D', '5D', '1M', '1Y', '5Y', 'Max'].map((tf) => (
               <button
@@ -264,7 +281,7 @@ function Dashboard({ user }) {
             optimal={buyRecommended}
             confidence={optimalTrade ? optimalTrade.confidence : null}
             recommendation={optimalTrade ? optimalTrade.recommendation : null}
-            price={currentPrice}
+            price={adjustedCurrentPrice}
           />
           <BuySellCard
             side="sell"
@@ -274,7 +291,7 @@ function Dashboard({ user }) {
             optimal={sellRecommended}
             confidence={optimalTrade ? optimalTrade.confidence : null}
             recommendation={optimalTrade ? optimalTrade.recommendation : null}
-            price={currentPrice}
+            price={adjustedCurrentPrice}
           />
         </div>
 

@@ -29,10 +29,11 @@ def _latest_market_price(pair: str) -> Optional[float]:
 def get_prediction(
     pair: str,
     lookback_days: int = Query(default=30, ge=1, le=365),
+    spread_multiplier: float = Query(default=1.0, ge=0.01),
     db: Session = Depends(get_db),
 ):
     loader = get_model_loader()
-    result = loader.predict(pair, lookback_days)
+    result = loader.predict(pair, lookback_days, spread_multiplier=spread_multiplier)
 
     current_price = _latest_market_price(pair)
 
@@ -53,18 +54,20 @@ def get_prediction(
         "price_target": result["price_target"],
         "current_price": current_price,
         "model_version": result.get("model_version"),
+        "spread_multiplier": spread_multiplier,
     }
 
 
 @router.get("")
 def get_latest_prediction(
     pair: Optional[str] = Query(default=None),
+    spread_multiplier: float = Query(default=1.0, ge=0.01),
     db: Session = Depends(get_db),
 ):
     loader = get_model_loader()
 
     if pair:
-        result = loader.predict(pair)
+        result = loader.predict(pair, spread_multiplier=spread_multiplier)
         current_price = _latest_market_price(pair)
         return {
             "direction": result["direction"],
@@ -72,11 +75,12 @@ def get_latest_prediction(
             "price_target": result["price_target"],
             "current_price": current_price,
             "model_version": result.get("model_version"),
+            "spread_multiplier": spread_multiplier,
         }
 
     pair = pair or "PEN/USD"
 
-    result = loader.predict(pair)
+    result = loader.predict(pair, spread_multiplier=spread_multiplier)
     current_price = _latest_market_price(pair)
 
     prediction = Prediction(
@@ -97,4 +101,5 @@ def get_latest_prediction(
         "current_price": current_price,
         "model_version": result.get("model_version"),
         "pair": prediction.pair,
+        "spread_multiplier": spread_multiplier,
     }

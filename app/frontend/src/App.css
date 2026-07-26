@@ -577,8 +577,7 @@ body {
   border-color: #00d4aa;
 }
 
-.bank-overlay-header + .bank-option,
-.bank-overlay-header + .no-bank-option {
+.bank-overlay-header + .bank-option {
   margin-top: 0;
 }
 
@@ -637,17 +636,6 @@ body {
   background-color: #00d4aa;
   border-color: #00d4aa;
 }
-
-.no-bank-option .bank-option-dot {
-  border-style: dashed;
-}
-
-.no-bank-option.selected .bank-option-dot {
-  border-style: solid;
-  background-color: #00d4aa;
-  border-color: #00d4aa;
-}
-
 
 .bank-empty {
   padding: 0.5rem;

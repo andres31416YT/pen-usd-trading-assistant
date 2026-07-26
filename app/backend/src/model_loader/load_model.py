@@ -120,13 +120,19 @@ def _generar_senal(precio_actual: float, precio_predicho: float,
     return accion, max(min(abs(cambio_pct) / 10, 1.0), 0.0), confianza
 
 
-def _obtener_precios_historicos(pair: str, lookback_days: int) -> list:
+def _obtener_precios_historicos(pair: str, lookback_days: int, min_points: int) -> list:
     symbol_map = {"PEN/USD": "PEN=X"}
     symbol = symbol_map.get(pair, pair)
     from market_data.yahoo import get_price_history
-    timeframe_map = {30: "5D", 60: "5D", 90: "5D"}
-    timeframe = timeframe_map.get(lookback_days, "5D")
-    data = get_price_history(symbol, timeframe)
+    timeframe_candidates = ["5D", "1M", "3M", "1Y", "5Y", "Max"]
+    data = []
+    for timeframe in timeframe_candidates:
+        try:
+            data = get_price_history(symbol, timeframe)
+            if len(data) >= min_points:
+                break
+        except Exception:
+            continue
     return [float(item["price"]) for item in data]
 
 
@@ -154,23 +160,25 @@ class ModelLoader:
 
         return self.model is not None
 
-    def predict(self, pair, lookback_days=30):
+    def predict(self, pair, lookback_days=30, spread_multiplier=1.0):
         if self.model is None:
             return {
                 "direction": "neutral",
                 "confidence": 0.0,
                 "price_target": None,
                 "model_version": self.model_version,
+                "spread_multiplier": spread_multiplier,
             }
 
         try:
-            precios = _obtener_precios_historicos(pair, lookback_days)
+            precios = _obtener_precios_historicos(pair, lookback_days, self.checkpoint["config"]["lookback_window"])
             if len(precios) < self.checkpoint["config"]["lookback_window"]:
                 return {
                     "direction": "neutral",
                     "confidence": 0.0,
                     "price_target": None,
                     "model_version": self.model_version,
+                    "spread_multiplier": spread_multiplier,
                 }
 
             mean = float(self.checkpoint["norm_mean"])
@@ -187,15 +195,19 @@ class ModelLoader:
             precio_actual = precios[-1]
             precio_predicho = float(pred_real[0])
 
+            precio_actual_ajustado = precio_actual * spread_multiplier
+            precio_predicho_ajustado = precio_predicho * spread_multiplier
+
             direction, confidence, conf_str = _generar_senal(
-                precio_actual, precio_predicho, buy_threshold_pct=0.5, sell_threshold_pct=-0.5
+                precio_actual_ajustado, precio_predicho_ajustado, buy_threshold_pct=0.5, sell_threshold_pct=-0.5
             )
 
             return {
                 "direction": direction,
                 "confidence": round(confidence, 4),
-                "price_target": round(precio_predicho, 4),
+                "price_target": round(precio_predicho_ajustado, 4),
                 "model_version": self.model_version,
+                "spread_multiplier": spread_multiplier,
             }
         except Exception:
             return {
@@ -203,9 +215,10 @@ class ModelLoader:
                 "confidence": 0.0,
                 "price_target": None,
                 "model_version": self.model_version,
+                "spread_multiplier": spread_multiplier,
             }
 
-    def generate_signal(self, pair):
+    def generate_signal(self, pair, spread_multiplier=1.0):
         if self.model is None:
             return {
                 "pair": pair,
@@ -218,12 +231,12 @@ class ModelLoader:
 
         try:
             current_price = _get_yahoo_latest_price("PEN=X")
-            prediction = self.predict(pair, lookback_days=30)
+            prediction = self.predict(pair, lookback_days=30, spread_multiplier=spread_multiplier)
             return {
                 "pair": pair,
                 "direction": prediction["direction"],
                 "confidence": prediction["confidence"],
-                "current_price": current_price,
+                "current_price": current_price * spread_multiplier if current_price else None,
                 "target_price": prediction.get("price_target"),
                 "indicator": "forecast",
             }
