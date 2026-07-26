@@ -175,16 +175,14 @@ function Dashboard({ user }) {
               Banco
             </button>
             {bankOverlayOpen && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, zIndex: 100 }}>
-                <BankSelector
-                  banks={banks}
-                  selectedBank={selectedBank}
-                  bankChecked={bankChecked}
-                  onSelectBank={handleSelectBank}
-                  onToggleBank={handleToggleBank}
-                  onClose={() => setBankOverlayOpen(false)}
-                />
-              </div>
+              <BankSelector
+                banks={banks}
+                selectedBank={selectedBank}
+                bankChecked={bankChecked}
+                onSelectBank={handleSelectBank}
+                onToggleBank={handleToggleBank}
+                onClose={() => setBankOverlayOpen(false)}
+              />
             )}
           </div>
           {selectedBank && (

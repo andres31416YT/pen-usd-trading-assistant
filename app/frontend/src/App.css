@@ -8,6 +8,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #0a0e17;
   color: #e0e0e0;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 .app {
@@ -18,6 +20,7 @@ body {
   padding: 1.5rem;
   max-width: 1440px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .loading-container {
@@ -29,6 +32,7 @@ body {
   color: #8892b0;
 }
 
+/* ======== NAVBAR ======== */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -36,6 +40,9 @@ body {
   padding: 1rem 2rem;
   background-color: #111827;
   border-bottom: 1px solid #1e293b;
+  position: sticky;
+  top: 0;
+  z-index: 200;
 }
 
 .navbar-brand {
@@ -43,6 +50,8 @@ body {
   font-weight: 700;
   color: #00d4aa;
   text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navbar-links {
@@ -61,6 +70,53 @@ body {
   color: #00d4aa;
 }
 
+/* Hamburger menu button */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+  color: #8892b0;
+  transition: color 0.2s, border-color 0.2s;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.menu-toggle:hover,
+.menu-toggle:focus {
+  color: #00d4aa;
+  border-color: #00d4aa;
+  outline: none;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 2px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.menu-toggle.active span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ======== BUTTONS ======== */
 .btn {
   padding: 0.5rem 1.2rem;
   border-radius: 6px;
@@ -69,10 +125,16 @@ body {
   border: none;
   transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .btn:active {
   transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: 2px solid #00d4aa;
+  outline-offset: 2px;
 }
 
 .btn-primary {
@@ -114,6 +176,7 @@ body {
   font-size: 0.8rem;
 }
 
+/* ======== FORMS ======== */
 .form-container {
   max-width: 420px;
   margin: 3rem auto;
@@ -121,12 +184,15 @@ body {
   background-color: #111827;
   border-radius: 10px;
   border: 1px solid #1e293b;
+  width: calc(100% - 2rem);
+  max-width: 420px;
 }
 
 .form-container h2 {
   margin-bottom: 1.5rem;
   color: #00d4aa;
   text-align: center;
+  font-size: 1.3rem;
 }
 
 .form-group {
@@ -148,6 +214,7 @@ body {
   border-radius: 6px;
   color: #e0e0e0;
   font-size: 1rem;
+  -webkit-appearance: none;
 }
 
 .form-group input:focus {
@@ -161,6 +228,11 @@ body {
   margin-top: 0.3rem;
 }
 
+.form-container p {
+  font-size: 0.9rem;
+}
+
+/* ======== DASHBOARD GRIDS ======== */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -168,6 +240,7 @@ body {
   margin-top: 1.5rem;
 }
 
+/* ======== CARDS ======== */
 .card {
   background-color: #111827;
   border-radius: 10px;
@@ -181,6 +254,7 @@ body {
   font-size: 1.1rem;
 }
 
+/* ======== SIGNAL CARD ======== */
 .signal-card {
   padding: 1rem;
   background-color: #1e293b;
@@ -202,6 +276,8 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
 }
 
 .signal-pair {
@@ -226,6 +302,7 @@ body {
   color: #e0e0e0;
 }
 
+/* ======== PREDICTION DISPLAY ======== */
 .prediction-display {
   text-align: center;
   padding: 1.5rem;
@@ -254,11 +331,14 @@ body {
   color: #8892b0;
 }
 
+/* ======== ALERT BANNER ======== */
 .alert-banner {
   padding: 0.8rem 1.2rem;
   border-radius: 6px;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .alert-banner.info {
@@ -276,6 +356,7 @@ body {
   border: 1px solid #ef4444;
 }
 
+/* ======== USER INFO ======== */
 .user-info {
   font-size: 0.85rem;
   color: #8892b0;
@@ -285,36 +366,38 @@ body {
   color: #e0e0e0;
 }
 
-.dashboard-top {
+/* ======== DASHBOARD TOP ROW (BALANCE + CHART) ======== */
+.dashboard-top-row {
   display: grid;
-  grid-template-columns: 300px 1fr auto;
+  grid-template-columns: 1fr 2fr auto;
   gap: 1rem;
   margin-bottom: 1.5rem;
   align-items: start;
 }
 
-.dashboard-top .balance-card {
+.balance-card {
   background: linear-gradient(135deg, #111827 0%, #1a2332 100%);
   border: 1px solid #1e293b;
   border-radius: 12px;
   padding: 1.5rem;
 }
 
-.dashboard-top .balance-card .balance-label {
+.balance-card .balance-label {
   font-size: 0.8rem;
   color: #8892b0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.dashboard-top .balance-card .balance-value {
+.balance-card .balance-value {
   font-size: 2rem;
   font-weight: 700;
   color: #00d4aa;
   margin-top: 0.3rem;
+  word-break: break-all;
 }
 
-.dashboard-top .balance-card .balance-currency {
+.balance-card .balance-currency {
   font-size: 0.9rem;
   color: #8892b0;
 }
@@ -324,6 +407,26 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+}
+
+.balance-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.balance-row .section-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00d4aa;
+}
+
+.balance-currency {
+  font-size: 0.85rem;
+  color: #8892b0;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .btn-toggle-visibility {
@@ -346,46 +449,33 @@ body {
   border-color: #00d4aa;
 }
 
-.balance-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.3rem;
-}
-
-.balance-row .section-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #00d4aa;
-}
-
-.balance-currency {
-  font-size: 0.85rem;
-  color: #8892b0;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
 .balance-chart-card {
   background-color: #111827;
   border: 1px solid #1e293b;
   border-radius: 12px;
   padding: 1.2rem;
   min-height: 300px;
+  position: relative;
 }
 
-.balance-chart-card .chart-header {
+.balance-chart-card .chart-header,
+.price-chart-card .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.balance-chart-card .chart-title {
+.balance-chart-card .chart-title,
+.price-chart-card .chart-title {
   font-size: 0.85rem;
   color: #8892b0;
 }
 
-.balance-chart-card .chart-value {
+.balance-chart-card .chart-value,
+.price-chart-card .chart-value {
   font-size: 1.1rem;
   font-weight: 600;
   color: #e0e0e0;
@@ -418,6 +508,7 @@ body {
   font-size: 10px;
 }
 
+/* ======== BANK OVERLAY ======== */
 .bank-overlay {
   position: absolute;
   top: calc(100% + 4px);
@@ -429,6 +520,7 @@ body {
   padding: 0.5rem;
   z-index: 100;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width: calc(100vw - 2rem);
 }
 
 .bank-overlay .bank-option {
@@ -440,6 +532,8 @@ body {
   align-items: center;
   font-size: 0.85rem;
   transition: background-color 0.15s;
+  flex-wrap: wrap;
+  gap: 0.3rem;
 }
 
 .bank-overlay .bank-option:hover {
@@ -462,6 +556,7 @@ body {
   color: #00d4aa;
 }
 
+/* ======== DASHBOARD MIDDLE ======== */
 .dashboard-middle {
   margin-bottom: 2rem;
 }
@@ -493,17 +588,11 @@ body {
   min-height: 320px;
 }
 
-.price-chart-card .chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8rem;
-}
-
 .price-chart-card .current-price {
   font-size: 1.5rem;
   font-weight: 700;
   color: #e0e0e0;
+  word-break: break-all;
 }
 
 .price-chart-card .price-change {
@@ -523,6 +612,7 @@ body {
   display: flex;
   gap: 0.3rem;
   margin-top: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .timeframe-btn {
@@ -535,6 +625,7 @@ body {
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .timeframe-btn:hover {
@@ -549,6 +640,7 @@ body {
   font-weight: 600;
 }
 
+/* ======== PNL CARD ======== */
 .pnl-card {
   background-color: #111827;
   border: 1px solid #1e293b;
@@ -558,6 +650,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .pnl-card .pnl-label {
@@ -571,6 +664,7 @@ body {
   font-size: 1.3rem;
   font-weight: 700;
   margin-top: 0.2rem;
+  word-break: break-all;
 }
 
 .pnl-card .pnl-value.positive {
@@ -594,6 +688,7 @@ body {
   color: #ef4444;
 }
 
+/* ======== BUY/SELL SECTION ======== */
 .buysell-section {
   display: flex;
   gap: 1.5rem;
@@ -651,6 +746,7 @@ body {
   font-size: 1rem;
   font-family: inherit;
   text-align: right;
+  min-width: 0;
 }
 
 .buysell-card .amount-input:focus {
@@ -680,6 +776,7 @@ body {
   cursor: pointer;
   font-family: inherit;
   transition: all 0.2s;
+  margin-top: auto;
 }
 
 .buysell-card .action-btn.buy-btn {
@@ -712,6 +809,7 @@ body {
   text-align: center;
 }
 
+/* ======== ORDER HISTORY ======== */
 .order-history {
   background-color: #111827;
   border: 1px solid #1e293b;
@@ -734,6 +832,8 @@ body {
   border-radius: 8px;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
 }
 
 .order-item .order-side {
@@ -771,6 +871,7 @@ body {
 .order-item .order-time {
   color: #8892b0;
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .order-empty {
@@ -780,10 +881,327 @@ body {
   font-size: 0.9rem;
 }
 
-.dashboard-top-row {
-  display: grid;
-  grid-template-columns: 1fr 2fr auto;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  align-items: start;
+/* ======== RESPONSIVE: TABLET (<=1024px) ======== */
+@media (max-width: 1024px) {
+  .dashboard-top-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-top-row .balance-card {
+    grid-column: 1 / -1;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  .navbar {
+    padding: 0.8rem 1rem;
+  }
+
+  .buysell-section {
+    gap: 1rem;
+  }
+}
+
+/* ======== RESPONSIVE: MOBILE (<=768px) ======== */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  /* Navbar: hamburger menu */
+  .navbar {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #1e293b;
+    margin-top: 0.75rem;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-links a,
+  .navbar-links .user-info {
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .navbar-links .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Dashboard top: single column */
+  .dashboard-top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .balance-card .balance-value {
+    font-size: 1.5rem;
+  }
+
+  .balance-row .section-value {
+    font-size: 1.5rem;
+  }
+
+  .balance-chart-card {
+    min-height: 220px;
+    padding: 1rem;
+  }
+
+  .chart-svg {
+    height: 150px;
+  }
+
+  /* Bank overlay: full width on mobile */
+  .bank-overlay {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 50vh;
+    overflow-y: auto;
+    border-radius: 12px 12px 0 0;
+    z-index: 300;
+  }
+
+  /* Dashboard middle */
+  .pair-name {
+    font-size: 1.2rem;
+  }
+
+  .pair-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .price-chart-card {
+    padding: 1rem;
+    min-height: 260px;
+  }
+
+  .price-chart-card .current-price {
+    font-size: 1.2rem;
+  }
+
+  /* PnL card: stack vertically */
+  .pnl-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.2rem;
+  }
+
+  .pnl-card .pnl-value {
+    font-size: 1.1rem;
+  }
+
+  /* Buy/Sell cards: stack vertically */
+  .buysell-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .buysell-card {
+    min-height: auto;
+    padding: 1.2rem;
+  }
+
+  .buysell-card .action-btn {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  /* Timeframe selector: scroll horizontally */
+  .timeframe-selector {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.25rem;
+  }
+
+  .timeframe-btn {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    flex-shrink: 0;
+  }
+
+  /* Order history */
+  .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  .order-item .order-details {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .order-item .order-time {
+    align-self: flex-end;
+  }
+
+  /* Signal card */
+  .signal-details {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  /* Form */
+  .form-container {
+    margin: 1.5rem auto;
+    padding: 1.5rem;
+  }
+
+  .form-container h2 {
+    font-size: 1.1rem;
+  }
+
+  /* Alerts */
+  .alert-banner {
+    font-size: 0.8rem;
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+/* ======== RESPONSIVE: SMALL MOBILE (<=480px) ======== */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.5rem;
+  }
+
+  .navbar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .navbar-brand {
+    font-size: 1rem;
+  }
+
+  .dashboard-top-row {
+    gap: 0.75rem;
+  }
+
+  .balance-card {
+    padding: 1rem;
+  }
+
+  .balance-card .balance-value {
+    font-size: 1.3rem;
+  }
+
+  .balance-row .section-value {
+    font-size: 1.3rem;
+  }
+
+  .balance-chart-card {
+    min-height: 180px;
+    padding: 0.75rem;
+  }
+
+  .chart-svg {
+    height: 120px;
+  }
+
+  .price-chart-card {
+    min-height: 220px;
+    padding: 0.75rem;
+  }
+
+  .price-chart-card .current-price {
+    font-size: 1rem;
+  }
+
+  .chart-svg {
+    height: 150px;
+  }
+
+  .pnl-card {
+    padding: 0.75rem 1rem;
+  }
+
+  .pnl-card .pnl-value {
+    font-size: 1rem;
+  }
+
+  .buysell-card {
+    padding: 1rem;
+  }
+
+  .buysell-card .amount-input {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .order-history {
+    padding: 0.75rem;
+  }
+
+  .order-item {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .signal-card {
+    padding: 0.75rem;
+  }
+
+  .signal-details {
+    grid-template-columns: 1fr 1fr;
+    font-size: 0.75rem;
+  }
+
+  .prediction-value {
+    font-size: 1.8rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .timeframe-selector {
+    gap: 0.15rem;
+  }
+
+  .timeframe-btn {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+}
+
+/* ======== PREVENT HORIZONTAL OVERFLOW ======== */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .main-content,
+  .app {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Ensure SVGs scale down on mobile */
+  .chart-svg {
+    max-width: 100%;
+  }
 }
