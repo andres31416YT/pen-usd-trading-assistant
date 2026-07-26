@@ -4,7 +4,7 @@ function PriceChart({ data }) {
   if (!data || data.length === 0) {
     return (
       <svg className="chart-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
-        <text x="200" y="60" textAnchor="middle" fill="#8892b0" fontSize="11">
+        <text x="200" y="60" textAnchor="middle" fill="#8892b0" fontSize="9">
           Sin datos de precio
         </text>
       </svg>
