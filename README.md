@@ -307,7 +307,26 @@ secretos de GitHub Actions).
 
 ---
 
-## 9. Notas importantes
+## 9. Fuente de precios de mercado
+
+Este proyecto consume precios reales del tipo de cambio **PEN/USD** desde **Yahoo Finance** (Chart API).
+
+- Símbolo: `PEN=X`
+- Endpoints utilizados:
+  - `https://query1.finance.yahoo.com/v8/finance/chart/PEN=X?interval=1d&range=max`
+  - Fallback: `https://query2.finance.yahoo.com/v8/finance/chart/PEN=X?interval=1d&range=max`
+- Respuesta: JSON con `timestamp`, `open`, `high`, `low`, `close` y `volume`.
+- Uso:
+  - Diario: `interval=1d`, `range=max`
+  - Horario: `interval=1h`, `range=730d`
+  - Por minuto: `interval=1m`, `range=7d`
+- La app usa temporalidades reducidas para la gráfica PEN/USD: **1D, 5D, 1M, 1Y, 5Y, Max**.
+- También se admiten rangos exactos por `period1` y `period2` (timestamps Unix).
+- Para precio actual: `interval=1m&range=1d` y se toma el último `close`.
+
+> Nota: este endpoint no es una API pública oficial de Yahoo, es el mismo que consume internamente Yahoo Finance. Está sujeto a cambios sin aviso. En entornos locales puede requerir reintentos/caché.
+
+## 10. Notas importantes
 
 - Este repositorio asume que el **entrenamiento** del modelo ya ocurrio
   en el repo `pen-usd-trading-model` (Hugging Face). Aqui solo se
@@ -324,3 +343,6 @@ secretos de GitHub Actions).
   por si solo — la conexion a un broker especifico (si se agrega en el
   futuro) deberia tratarse como un servicio adicional, con su propia
   capa de seguridad y confirmaciones explicitas del usuario.
+- En caso de fallo de Yahoo Finance, el backend puede devolver datos
+  sintéticos o usar un servicio alternativo definido por variable de
+  entorno.

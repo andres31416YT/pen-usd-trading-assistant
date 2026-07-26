@@ -26,7 +26,8 @@ tradingClient.interceptors.response.use(
 export const tradingAPI = {
   getPrediction: () => tradingClient.get('/prediction'),
   getSignals: () => tradingClient.get('/signals'),
-  getHistory: () => tradingClient.get('/history'),
+  getHistory: (params) => tradingClient.get('/history', { params }),
+  getPriceHistory: (params) => tradingClient.get('/history/prices', { params }),
   getAlarms: () => tradingClient.get('/alarms'),
 };
 

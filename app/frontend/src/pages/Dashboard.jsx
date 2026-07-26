@@ -14,10 +14,11 @@ function Dashboard({ user }) {
   const [balanceHistory, setBalanceHistory] = useState([]);
   const [currentPrice, setCurrentPrice] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
+  const [priceHistoryLoading, setPriceHistoryLoading] = useState(true);
   const [optimalTrade, setOptimalTrade] = useState(null);
   const [orders, setOrders] = useState([]);
   const [pnl, setPnl] = useState({ value: 0, percent: 0 });
-  const [timeframe, setTimeframe] = useState('1W');
+  const [timeframe, setTimeframe] = useState('5D');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bankOverlayOpen, setBankOverlayOpen] = useState(false);
@@ -56,7 +57,7 @@ function Dashboard({ user }) {
       setOrders(ordersRes);
 
       if (predRes) {
-        setCurrentPrice(predRes.price_target || 0);
+        setCurrentPrice(predRes.current_price || predRes.price_target || null);
         const dir = predRes.direction || 'neutral';
         const conf = predRes.confidence || 0;
         const isOptimal = conf >= 0.6 && dir !== 'neutral';
@@ -80,6 +81,34 @@ function Dashboard({ user }) {
     }
   }, []);
 
+  const timeframeToDays = {
+    '1D': 1,
+    '1W': 7,
+    '1M': 30,
+    '3M': 90,
+    '1Y': 365,
+    '5Y': 1825,
+    'Todo': 3650,
+  };
+
+  const fetchPriceHistory = useCallback(async () => {
+    setPriceHistoryLoading(true);
+    setError('');
+    try {
+      const res = await tradingAPI.getPriceHistory({ pair: 'PEN/USD', timeframe });
+      const data = (res?.data || []).map((item) => ({
+        date: item.date,
+        price: parseFloat(item.price),
+      }));
+      setPriceHistory(data);
+    } catch (err) {
+      setError('Error al cargar historial de precios');
+      setPriceHistory([]);
+    } finally {
+      setPriceHistoryLoading(false);
+    }
+  }, [timeframe]);
+
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 5000);
@@ -87,18 +116,8 @@ function Dashboard({ user }) {
   }, [fetchData]);
 
   useEffect(() => {
-    const now = Date.now();
-    const prices = [];
-    for (let i = 61; i >= 0; i--) {
-      const d = new Date(now - i * 3600000);
-      const price = 3.70 + Math.sin(i * 0.1) * 0.05 + (Math.random() - 0.5) * 0.02;
-      prices.push({
-        date: d.toISOString().split('T')[0] + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-        price: parseFloat(price.toFixed(4)),
-      });
-    }
-    setPriceHistory(prices);
-  }, []);
+    fetchPriceHistory();
+  }, [fetchPriceHistory]);
 
   const handleSelectBank = (bank) => {
     setSelectedBank(bank);
@@ -217,7 +236,7 @@ function Dashboard({ user }) {
           </div>
           <PriceChart data={priceHistory} />
           <div className="timeframe-selector">
-            {['1D', '1W', '1M', '3M', '1Y', '5Y', 'Todo'].map((tf) => (
+            {['1D', '5D', '1M', '1Y', '5Y', 'Max'].map((tf) => (
               <button
                 key={tf}
                 className={`timeframe-btn ${timeframe === tf ? 'active' : ''}`}

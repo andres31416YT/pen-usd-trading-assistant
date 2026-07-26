@@ -494,9 +494,7 @@ body {
   stroke-linejoin: round;
 }
 
-.chart-svg .chart-area {
-  fill: url(#chartGradient);
-}
+
 
 .chart-svg .chart-grid {
   stroke: #1e293b;

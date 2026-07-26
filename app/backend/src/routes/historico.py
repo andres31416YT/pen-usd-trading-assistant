@@ -2,10 +2,92 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime, timedelta
+import math
 
-from db.connection import get_db, SignalHistory, Prediction
+from db.connection import get_db, SignalHistory, Prediction, Order
+from market_data.yahoo import get_price_history as yahoo_get_price_history
 
 router = APIRouter(prefix="/history", tags=["history"])
+
+
+def _generate_price_series(pair, days, num_points=80):
+    base_prices = {
+        "PEN/USD": 3.70,
+    }
+    base = base_prices.get(pair, 1.0)
+    now = datetime.utcnow()
+    points = []
+    for i in range(num_points):
+        d = now - timedelta(days=days - (i / max(num_points - 1, 1)) * days)
+        t = i * 0.12
+        drift = math.sin(t) * 0.025 + math.cos(t * 0.6) * 0.015
+        price = base + drift
+        points.append({
+            "date": d.isoformat(),
+            "pair": pair,
+            "price": round(price, 4),
+        })
+    return points
+
+
+TIMEFRAME_DAYS = {
+    "1D": 1,
+    "5D": 5,
+    "1M": 30,
+    "1Y": 365,
+    "5Y": 1825,
+    "Max": 3650,
+}
+
+
+@router.get("/prices")
+def get_price_history(
+    pair: Optional[str] = Query(default="PEN/USD"),
+    timeframe: str = Query(default="5D"),
+    pair_query: Optional[str] = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    effective_pair = pair_query or pair or "PEN/USD"
+    since = datetime.utcnow() - timedelta(days=TIMEFRAME_DAYS.get(timeframe, 30))
+
+    orders = db.query(Order).filter(
+        Order.pair == effective_pair,
+        Order.created_at >= since,
+    ).order_by(Order.created_at.asc()).all()
+
+    if orders:
+        data = [
+            {
+                "date": o.created_at.isoformat(),
+                "pair": o.pair,
+                "price": o.price,
+            }
+            for o in orders
+        ]
+        return {"pair": effective_pair, "data": data, "source": "orders"}
+
+    try:
+        symbol_map = {
+            "PEN/USD": "PEN=X",
+        }
+        symbol = symbol_map.get(effective_pair, effective_pair)
+        data = yahoo_get_price_history(symbol=symbol, timeframe=timeframe)
+        return {"pair": effective_pair, "data": data, "source": "yahoo"}
+    except Exception:
+        pass
+
+    data = _generate_price_series(effective_pair, TIMEFRAME_DAYS.get(timeframe, 30), 80)
+    return {"pair": effective_pair, "data": data, "source": "synthetic"}
+
+
+@router.get("")
+def get_history_index(
+    pair: Optional[str] = Query(default="PEN/USD"),
+    timeframe: str = Query(default="5D"),
+    pair_query: Optional[str] = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    return get_price_history(pair=pair, timeframe=timeframe, pair_query=pair_query, db=db)
 
 
 @router.get("/signals")
