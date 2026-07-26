@@ -226,13 +226,20 @@ function Dashboard({ user }) {
           <div className="chart-header">
             <span className="current-price">
               {currentPrice
-                ? currentPrice.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                ? `S/. ${currentPrice.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`
                 : '---'}
             </span>
-            <span className={`price-change ${pnl.value >= 0 ? 'positive' : 'negative'}`}>
-              {pnl.value >= 0 ? '+' : ''}
-              {pnl.value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
-            </span>
+            {priceHistory && priceHistory.length >= 2 && (() => {
+                const start = priceHistory[0].price;
+                const end = priceHistory[priceHistory.length - 1].price;
+                const change = start !== 0 ? ((end - start) / start) * 100 : 0;
+                return (
+                  <span className={`price-change ${change >= 0 ? 'positive' : 'negative'}`}>
+                    {change >= 0 ? '+' : ''}
+                    {change.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                  </span>
+                );
+              })()}
           </div>
           <PriceChart data={priceHistory} />
           <div className="timeframe-selector">
