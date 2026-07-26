@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 
 function PriceChart({ data }) {
+  const [hoverIndex, setHoverIndex] = useState(null);
+  const [mouseX, setMouseX] = useState(0);
+  const chartRef = useRef(null);
+
   if (!data || data.length === 0) {
     return (
       <svg className="chart-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
@@ -61,24 +65,82 @@ function PriceChart({ data }) {
   const isUp = data.length >= 2 && data[data.length - 1].price >= data[0].price;
   const lineColor = isUp ? '#00d4aa' : '#ef4444';
 
+  const handleMouseMove = useCallback((e) => {
+    if (!chartRef.current) return;
+    const rect = chartRef.current.getBoundingClientRect();
+    const svgWidth = rect.width;
+    const svgHeight = rect.height;
+    const relativeX = ((e.clientX - rect.left) / svgWidth) * width;
+
+    if (relativeX < padding || relativeX > rightAxisX || data.length < 2) {
+      setHoverIndex(null);
+      return;
+    }
+
+    const fraction = (relativeX - padding) / chartWidth;
+    const index = Math.round(fraction * (data.length - 1));
+    const clampedIndex = Math.max(0, Math.min(index, data.length - 1));
+    setHoverIndex(clampedIndex);
+    setMouseX(e.clientX - rect.left);
+  }, [data.length, padding, rightAxisX, chartWidth, width]);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoverIndex(null);
+  }, []);
+
+  const hoverPoint = hoverIndex !== null ? points[hoverIndex] : null;
+  const hoverData = hoverIndex !== null ? data[hoverIndex] : null;
+
   return (
-    <svg className="chart-svg" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={lineColor} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {gridLines}
-      <path d={areaPath} fill="url(#priceGradient)" className="chart-area" />
-      <path d={linePath} className="chart-line" style={{ stroke: lineColor }} />
-      {points.length > 0 && (
-        <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="3" fill={lineColor} />
+    <div className="chart-container" ref={chartRef}>
+      <svg
+        className="chart-svg"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <defs>
+          <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lineColor} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {gridLines}
+        <path d={areaPath} fill="url(#priceGradient)" className="chart-area" />
+        <path d={linePath} className="chart-line" style={{ stroke: lineColor }} />
+        {hoverPoint && (
+          <line x1={hoverPoint.x} y1={padding} x2={hoverPoint.x} y2={height - padding} stroke="#e0e0e0" strokeWidth="1" strokeDasharray="3,3" />
+        )}
+        {points.length > 0 && (
+          <circle
+            cx={points[points.length - 1].x}
+            cy={points[points.length - 1].y}
+            r={hoverIndex !== null && hoverIndex === points.length - 1 ? "5" : "3"}
+            fill={lineColor}
+            style={{ transition: 'r 0.1s ease' }}
+          />
+        )}
+        {hoverPoint && (
+          <circle cx={hoverPoint.x} cy={hoverPoint.y} r="5" fill={lineColor} stroke="#0a0f1a" strokeWidth="2" />
+        )}
+        <line x1={rightAxisX} y1={padding} x2={rightAxisX} y2={height - padding} stroke="#334155" strokeWidth="1" />
+        {priceLabels}
+        {xLabels}
+      </svg>
+      {hoverData && (
+        <div
+          className="chart-tooltip"
+          style={{
+            left: `${Math.min(mouseX, 380)}px`,
+            top: `${(hoverPoint.y / height) * 100}%`,
+          }}
+        >
+          <div className="tooltip-date">{hoverData.date}</div>
+          <div className="tooltip-price">S/. {hoverData.price.toFixed(3)}</div>
+        </div>
       )}
-      <line x1={rightAxisX} y1={padding} x2={rightAxisX} y2={height - padding} stroke="#334155" strokeWidth="1" />
-      {priceLabels}
-      {xLabels}
-    </svg>
+    </div>
   );
 }
 
