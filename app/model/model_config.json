@@ -1,0 +1,12 @@
+{
+  "lookback_window": 96,
+  "forecast_horizon": 5,
+  "patch_len": 8,
+  "patch_stride": 4,
+  "d_model": 128,
+  "n_heads": 8,
+  "n_layers": 3,
+  "d_ff": 256,
+  "dropout": 0.1,
+  "version": "1.0"
+}

@@ -1,4 +1,6 @@
+import math
 import torch
+import torch.nn as nn
 import json
 import os
 from pathlib import Path
@@ -10,10 +12,129 @@ MODEL_CHECKPOINT_PATH = os.getenv("MODEL_CHECKPOINT_PATH")
 MODEL_CONFIG_PATH = os.getenv("MODEL_CONFIG_PATH")
 
 
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model: int, max_len: int = 1000):
+        super().__init__()
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float32).unsqueeze(1)
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2, dtype=torch.float32) * (-math.log(10000.0) / d_model)
+        )
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        self.register_buffer("pe", pe.unsqueeze(0))
+
+    def forward(self, x):
+        return x + self.pe[:, : x.size(1), :]
+
+
+class PatchEmbedding(nn.Module):
+    def __init__(self, patch_len: int, patch_stride: int, d_model: int):
+        super().__init__()
+        self.patch_len = patch_len
+        self.patch_stride = patch_stride
+        self.projection = nn.Linear(patch_len, d_model)
+
+    def forward(self, x):
+        x = x.squeeze(-1)
+        patches = x.unfold(dimension=1, size=self.patch_len, step=self.patch_stride)
+        embedded = self.projection(patches)
+        return embedded
+
+
+class PatchTSTForecaster(nn.Module):
+    def __init__(self, lookback_window: int, forecast_horizon: int,
+                 patch_len: int, patch_stride: int,
+                 d_model: int, n_heads: int, n_layers: int,
+                 d_ff: int, dropout: float):
+        super().__init__()
+        self.patch_embedding = PatchEmbedding(patch_len, patch_stride, d_model)
+        n_patches = (lookback_window - patch_len) // patch_stride + 1
+        self.positional_encoding = PositionalEncoding(d_model, max_len=n_patches + 1)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_ff,
+            dropout=dropout, batch_first=True, activation="gelu",
+        )
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
+        self.norm = nn.LayerNorm(d_model)
+        self.head = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(n_patches * d_model, d_ff),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_ff, forecast_horizon),
+        )
+
+    def forward(self, x):
+        embedded = self.patch_embedding(x)
+        embedded = self.positional_encoding(embedded)
+        encoded = self.encoder(embedded)
+        encoded = self.norm(encoded)
+        forecast = self.head(encoded)
+        return forecast
+
+
+def _get_yahoo_latest_price(symbol: str) -> float:
+    from market_data.yahoo import get_latest_price
+    return get_latest_price(symbol)
+
+
+def _load_checkpoint(checkpoint_path: str):
+    return torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+
+
+def _reconstruct_model(checkpoint: dict) -> PatchTSTForecaster:
+    cfg = checkpoint["config"]
+    model = PatchTSTForecaster(
+        lookback_window=cfg["lookback_window"],
+        forecast_horizon=cfg["forecast_horizon"],
+        patch_len=cfg["patch_len"],
+        patch_stride=cfg["patch_stride"],
+        d_model=cfg["d_model"],
+        n_heads=cfg["n_heads"],
+        n_layers=cfg["n_layers"],
+        d_ff=cfg["d_ff"],
+        dropout=cfg["dropout"],
+    )
+    model.load_state_dict(checkpoint["model_state_dict"])
+    model.eval()
+    return model
+
+
+def _generar_senal(precio_actual: float, precio_predicho: float,
+                   buy_threshold_pct: float = 0.5, sell_threshold_pct: float = -0.5):
+    cambio_pct = ((precio_predicho - precio_actual) / precio_actual) * 100
+    if cambio_pct >= buy_threshold_pct:
+        accion = "buy"
+    elif cambio_pct <= sell_threshold_pct:
+        accion = "sell"
+    else:
+        accion = "neutral"
+    magnitud = abs(cambio_pct)
+    if magnitud >= 2 * abs(buy_threshold_pct):
+        confianza = "alta"
+    elif magnitud >= abs(buy_threshold_pct):
+        confianza = "media"
+    else:
+        confianza = "baja"
+    return accion, max(min(abs(cambio_pct) / 10, 1.0), 0.0), confianza
+
+
+def _obtener_precios_historicos(pair: str, lookback_days: int) -> list:
+    symbol_map = {"PEN/USD": "PEN=X"}
+    symbol = symbol_map.get(pair, pair)
+    from market_data.yahoo import get_price_history
+    timeframe_map = {30: "5D", 60: "5D", 90: "5D"}
+    timeframe = timeframe_map.get(lookback_days, "5D")
+    data = get_price_history(symbol, timeframe)
+    return [float(item["price"]) for item in data]
+
+
 class ModelLoader:
     def __init__(self):
         self.model = None
         self.config = None
+        self.checkpoint = None
         self.model_version = None
 
     def load(self):
@@ -24,8 +145,8 @@ class ModelLoader:
 
         checkpoint_path = Path(MODEL_CHECKPOINT_PATH)
         if checkpoint_path.exists():
-            self.model = torch.load(checkpoint_path, map_location="cpu")
-            self.model.eval()
+            self.checkpoint = _load_checkpoint(str(checkpoint_path))
+            self.model = _reconstruct_model(self.checkpoint)
             self.model_version = self.config.get("version", "unknown") if self.config else "unknown"
         else:
             self.model = None
@@ -43,17 +164,37 @@ class ModelLoader:
             }
 
         try:
-            with torch.no_grad():
-                prediction = self.model.predict(pair, lookback_days)
+            precios = _obtener_precios_historicos(pair, lookback_days)
+            if len(precios) < self.checkpoint["config"]["lookback_window"]:
+                return {
+                    "direction": "neutral",
+                    "confidence": 0.0,
+                    "price_target": None,
+                    "model_version": self.model_version,
+                }
 
-            direction = prediction.get("direction", "neutral")
-            confidence = float(prediction.get("confidence", 0.0))
-            price_target = float(prediction.get("price_target", 0.0)) if prediction.get("price_target") else None
+            mean = float(self.checkpoint["norm_mean"])
+            std = float(self.checkpoint["norm_std"])
+            lookback = self.checkpoint["config"]["lookback_window"]
+            ventana = precios[-lookback:]
+            ventana_norm = [(p - mean) / (std + 1e-8) for p in ventana]
+            x = torch.tensor(ventana_norm, dtype=torch.float32).view(1, lookback, 1)
+
+            with torch.no_grad():
+                pred_norm = self.model(x).squeeze(0).numpy()
+
+            pred_real = pred_norm * (std + 1e-8) + mean
+            precio_actual = precios[-1]
+            precio_predicho = float(pred_real[0])
+
+            direction, confidence, conf_str = _generar_senal(
+                precio_actual, precio_predicho, buy_threshold_pct=0.5, sell_threshold_pct=-0.5
+            )
 
             return {
                 "direction": direction,
                 "confidence": round(confidence, 4),
-                "price_target": price_target,
+                "price_target": round(precio_predicho, 4),
                 "model_version": self.model_version,
             }
         except Exception:
@@ -76,16 +217,15 @@ class ModelLoader:
             }
 
         try:
-            with torch.no_grad():
-                result = self.model.generate_signal(pair)
-
+            current_price = _get_yahoo_latest_price("PEN=X")
+            prediction = self.predict(pair, lookback_days=30)
             return {
                 "pair": pair,
-                "direction": result.get("direction", "neutral"),
-                "confidence": round(float(result.get("confidence", 0.0)), 4),
-                "current_price": float(result.get("current_price", 0.0)) if result.get("current_price") else None,
-                "target_price": float(result.get("target_price", 0.0)) if result.get("target_price") else None,
-                "indicator": result.get("indicator", "unknown"),
+                "direction": prediction["direction"],
+                "confidence": prediction["confidence"],
+                "current_price": current_price,
+                "target_price": prediction.get("price_target"),
+                "indicator": "forecast",
             }
         except Exception:
             return {
