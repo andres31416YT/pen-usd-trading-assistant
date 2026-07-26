@@ -74,24 +74,27 @@ def get_latest_prediction(
             "model_version": result.get("model_version"),
         }
 
-    query = db.query(Prediction).order_by(Prediction.created_at.desc())
-    latest = query.first()
+    pair = pair or "PEN/USD"
 
-    if latest is None:
-        current_price = _latest_market_price("PEN/USD")
-        return {
-            "direction": "neutral",
-            "confidence": 0.0,
-            "price_target": None,
-            "current_price": current_price,
-            "model_version": None,
-        }
+    result = loader.predict(pair)
+    current_price = _latest_market_price(pair)
+
+    prediction = Prediction(
+        pair=pair,
+        direction=result["direction"],
+        confidence=result["confidence"],
+        price_target=result["price_target"],
+        model_version=result.get("model_version"),
+    )
+    db.add(prediction)
+    db.commit()
+    db.refresh(prediction)
 
     return {
-        "direction": latest.direction,
-        "confidence": latest.confidence,
-        "price_target": latest.price_target,
-        "current_price": _latest_market_price(latest.pair),
-        "model_version": latest.model_version,
-        "pair": latest.pair,
+        "direction": result["direction"],
+        "confidence": result["confidence"],
+        "price_target": result["price_target"],
+        "current_price": current_price,
+        "model_version": result.get("model_version"),
+        "pair": prediction.pair,
     }
