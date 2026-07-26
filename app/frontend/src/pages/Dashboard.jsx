@@ -147,7 +147,9 @@ function Dashboard({ user }) {
           <div className="chart-header">
             <span className="chart-title">Balance</span>
             <span className="chart-value">
-              {balance ? `$${balance.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '---'}
+              {balanceVisible
+                ? (balance ? `$${balance.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '---')
+                : '**.***,**'}
             </span>
             <button
               className="btn btn-sm btn-secondary"

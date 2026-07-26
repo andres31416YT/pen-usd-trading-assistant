@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -9,6 +9,7 @@ import { authAPI } from './services/auth';
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -16,7 +17,10 @@ function App() {
       authAPI
         .verifyToken()
         .then((data) => setUser(data.user))
-        .catch(() => localStorage.removeItem('token'))
+        .catch(() => {
+          localStorage.removeItem('token');
+          setUser(null);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -31,7 +35,10 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    navigate('/login');
   };
+
+  const isAuthenticated = user !== null || localStorage.getItem('token') !== null;
 
   if (loading) {
     return (
@@ -48,15 +55,15 @@ function App() {
         <Routes>
           <Route
             path="/login"
-            element={user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />}
+            element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />}
           />
           <Route
             path="/register"
-            element={user ? <Navigate to="/dashboard" /> : <Register />}
+            element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />}
           />
           <Route
             path="/dashboard"
-            element={!user ? <Navigate to="/login" /> : <Dashboard user={user} />}
+            element={!isAuthenticated ? <Navigate to="/login" /> : <Dashboard user={user} />}
           />
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>

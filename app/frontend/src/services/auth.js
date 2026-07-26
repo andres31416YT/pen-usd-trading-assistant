@@ -7,10 +7,11 @@ const authClient = axios.create({
 authClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response) {
-      throw error;
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
-    throw new Error('Error de conexión');
+    throw error;
   }
 );
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { authAPI } from '../services/auth';
 
 function Navbar({ user, onLogout }) {
-  const navigate = useNavigate();
+  const hasToken = localStorage.getItem('token') !== null;
 
   const handleLogout = async () => {
     try {
@@ -11,9 +11,7 @@ function Navbar({ user, onLogout }) {
     } catch {
       // ignore
     }
-    localStorage.removeItem('token');
     onLogout();
-    navigate('/login');
   };
 
   return (
@@ -22,10 +20,10 @@ function Navbar({ user, onLogout }) {
         PEN/USD Assistant
       </Link>
       <div className="navbar-links">
-        {user ? (
+        {hasToken ? (
           <>
             <span className="user-info">
-              <strong>{user.username}</strong>
+              <strong>{user?.username || 'Usuario'}</strong>
             </span>
             <button className="btn btn-secondary" onClick={handleLogout}>
               Cerrar sesión
