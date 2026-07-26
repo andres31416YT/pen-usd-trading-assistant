@@ -6,7 +6,7 @@ function PredictionDisplay({ prediction }) {
 
   return (
     <div className="card prediction-display">
-      <h3>Predicción PEN/USD</h3>
+      <h3>Predicción USD/PEN</h3>
       <div className={`prediction-value ${direction}`}>
         {direction === 'bullish' ? '↑ Alcista' : direction === 'bearish' ? '↓ Bajista' : '→ Neutral'}
       </div>

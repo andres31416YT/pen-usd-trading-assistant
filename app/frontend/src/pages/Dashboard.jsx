@@ -218,8 +218,8 @@ function Dashboard({ user }) {
 
       <div className="dashboard-middle">
         <div className="pair-header">
-          <span className="pair-name">PEN/USD</span>
-          <span className="pair-subtitle">Peruvian Sol / US Dollar</span>
+          <span className="pair-name">USD/PEN</span>
+          <span className="pair-subtitle">US Dollar / Peruvian Sol</span>
         </div>
 
         <div className="price-chart-card">

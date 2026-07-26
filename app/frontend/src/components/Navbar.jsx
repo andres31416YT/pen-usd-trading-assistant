@@ -58,7 +58,7 @@ function Navbar({ user, onLogout }) {
   return (
     <nav className="navbar" ref={menuRef} aria-label="Navegación principal">
       <Link to="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
-        PEN/USD Assistant
+        USD/PEN Assistant
       </Link>
 
       {/* Hamburger toggle button */}
