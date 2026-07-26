@@ -501,13 +501,13 @@ body {
 
 .chart-svg .chart-text {
   fill: #8892b0;
-  font-size: 9px;
+  font-size: 7px;
 }
 
 .chart-svg .chart-price-text {
   fill: #8892b0;
-  font-size: 9px;
-  letter-spacing: -0.4px;
+  font-size: 7px;
+  letter-spacing: -0.6px;
 }
 
 /* ======== BANK OVERLAY ======== */
