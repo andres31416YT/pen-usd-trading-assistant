@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/auth';
 
@@ -8,6 +8,14 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const expired = sessionStorage.getItem('sessionExpired') === 'true';
+
+  React.useEffect(() => {
+    if (expired) {
+      sessionStorage.removeItem('sessionExpired');
+      setError('Tu sesión expiró. Por favor, inicia sesión de nuevo.');
+    }
+  }, [expired]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

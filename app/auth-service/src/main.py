@@ -40,7 +40,7 @@ def get_password_hash(password: str) -> str:
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "sub": str(to_encode.get("sub", ""))})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -53,16 +53,23 @@ def get_current_user(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: int = payload.get("sub")
         if user_id is None:
+            print(f"[AUTH] Invalid token payload: user_id is None, token={token[:20]}...")
             raise HTTPException(status_code=401, detail="Token inválido")
-    except JWTError:
+    except JWTError as e:
+        print(f"[AUTH] JWT decode error: {e}, token={token[:20]}...")
         raise HTTPException(status_code=401, detail="Token inválido")
 
     session = db.query(SessionModel).filter(SessionModel.token == token).first()
+    if session is None:
+        print(f"[AUTH] Session not found for token={token[:20]}..., user_id={user_id}")
+    elif session.expires_at < datetime.utcnow():
+        print(f"[AUTH] Session expired: expires_at={session.expires_at}, now={datetime.utcnow()}")
     if session is None or session.expires_at < datetime.utcnow():
         raise HTTPException(status_code=401, detail="Token expirado")
 
     user = db.query(User).filter(User.id == user_id).first()
     if user is None or not user.is_active:
+        print(f"[AUTH] User not found or inactive: user_id={user_id}, user={user}")
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
 
     return user
