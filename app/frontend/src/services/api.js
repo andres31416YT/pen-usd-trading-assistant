@@ -51,3 +51,16 @@ export const tradingAPI = {
   getHistory: () => tradingClient.get('/history'),
   getAlarms: () => tradingClient.get('/alarms'),
 };
+
+export const bankAPI = {
+  listBanks: () => tradingClient.get('/banks'),
+  getBank: (id) => tradingClient.get(`/banks/${id}`),
+};
+
+export const accountAPI = {
+  getBalance: () => tradingClient.get('/account/balance'),
+  getBalanceHistory: (days) => tradingClient.get('/account/balance-history', { params: { days } }),
+  getOptimalTrade: () => tradingClient.get('/account/optimal-trade'),
+  getOrders: () => tradingClient.get('/orders'),
+  createOrder: (data) => tradingClient.post('/orders', data),
+};

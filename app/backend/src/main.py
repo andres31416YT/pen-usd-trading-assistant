@@ -13,6 +13,9 @@ from model_loader.load_model import get_model_loader
 from routes.predictions import router as prediction_router
 from routes.senales import router as signals_router
 from routes.historico import router as history_router
+from routes.banks import router as banks_router
+from routes.orders import router as orders_router
+from routes.account import router as account_router
 
 app = FastAPI(
     title="PEN/USD Trading Backend",
@@ -32,10 +35,27 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
+    _seed_banks()
+
+
+def _seed_banks():
+    from db.connection import SessionLocal, Bank
+    db = SessionLocal()
+    try:
+        existing = db.query(Bank).count()
+        if existing == 0:
+            bcp = Bank(name="BCP", spread_multiplier=3.40 / 3.760)
+            db.add(bcp)
+            db.commit()
+    finally:
+        db.close()
 
 app.include_router(prediction_router)
 app.include_router(signals_router)
 app.include_router(history_router)
+app.include_router(banks_router)
+app.include_router(orders_router)
+app.include_router(account_router)
 
 
 @app.get("/health")

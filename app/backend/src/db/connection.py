@@ -80,3 +80,27 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+class Bank(Base):
+    __tablename__ = "banks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, unique=True)
+    spread_multiplier = Column(Float, nullable=False)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False)
+    pair = Column(String(20), nullable=False)
+    side = Column(String(10), nullable=False)
+    amount = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    bank_id = Column(Integer, ForeignKey("banks.id"))
+    status = Column(String(20), default="filled")
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -16,7 +16,7 @@ function Login({ onLogin }) {
 
     try {
       const data = await authAPI.login(username, password);
-      onLogin(data.token, data.user);
+      onLogin(data.access_token, data.user);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al iniciar sesión');
