@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function BuySellCard({ side, label, onExecute, disabled, optimal, price }) {
+function BuySellCard({ side, label, onExecute, disabled, optimal, price, confidence, recommendation }) {
   const [inputAmount, setInputAmount] = useState('');
 
   const handleExecute = () => {
@@ -11,13 +11,28 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price }) {
     }
   };
 
-  const cardClass = `buysell-card ${side}${disabled ? ' disabled' : ''}`;
+  const isRecommended = optimal && recommendation === side;
+  const cardClass = `buysell-card ${side}${disabled ? ' disabled' : ''}${isRecommended ? ' recommended' : ''}`;
+
+  const confidenceColor = confidence >= 0.7 ? '#4ade80' : confidence >= 0.5 ? '#facc15' : '#f87171';
 
   return (
     <div className={cardClass}>
-      <div className="card-label">{label}</div>
-      {optimal && !disabled && (
-        <div className="optimal-badge">Modelo optimo detectado</div>
+      <div className="card-label">
+        {label}
+        {isRecommended && (
+          <span className="recommendation-badge" style={{ backgroundColor: confidenceColor }}>
+            Modelo: {recommendation === 'buy' ? 'Compra' : 'Venta'}
+          </span>
+        )}
+      </div>
+      {isRecommended && confidence !== null && confidence !== undefined && (
+        <div className="confidence-bar-container">
+          <div className="confidence-bar" style={{ width: `${confidence * 100}%`, backgroundColor: confidenceColor }} />
+          <span className="confidence-text" style={{ color: confidenceColor }}>
+            {Math.round(confidence * 100)}% confianza
+          </span>
+        </div>
       )}
       <div className="amount-row">
         <input
@@ -34,7 +49,7 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price }) {
       </div>
       {price && (
         <div style={{ fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.5rem', textAlign: 'center' }}>
-          Precio ref: {price.toFixed(4)} USD/PEN
+          Precio ref: {price.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD/PEN
         </div>
       )}
       <button
@@ -42,7 +57,7 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price }) {
         onClick={handleExecute}
         disabled={disabled}
       >
-        {disabled ? 'Deshabilitado' : ` ${label}`}
+        {disabled ? (label === 'Comprar' ? 'Sin señal de compra' : 'Sin señal de venta') : ` ${label}`}
       </button>
     </div>
   );

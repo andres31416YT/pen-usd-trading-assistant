@@ -154,6 +154,9 @@ function Dashboard({ user }) {
     );
   }
 
+  const buyRecommended = optimalTrade && optimalTrade.recommendation === 'buy';
+  const sellRecommended = optimalTrade && optimalTrade.recommendation === 'sell';
+
   return (
     <div>
       <div className="dashboard-top-row">
@@ -262,16 +265,20 @@ function Dashboard({ user }) {
             side="buy"
             label="Comprar"
             onExecute={(amount) => handleCreateOrder('buy', amount)}
-            disabled={!optimalTrade || !optimalTrade.is_optimal}
-            optimal={optimalTrade && optimalTrade.is_optimal && optimalTrade.recommendation === 'buy'}
+            disabled={!buyRecommended}
+            optimal={buyRecommended}
+            confidence={optimalTrade ? optimalTrade.confidence : null}
+            recommendation={optimalTrade ? optimalTrade.recommendation : null}
             price={currentPrice}
           />
           <BuySellCard
             side="sell"
             label="Vender"
             onExecute={(amount) => handleCreateOrder('sell', amount)}
-            disabled={!optimalTrade || !optimalTrade.is_optimal}
-            optimal={optimalTrade && optimalTrade.is_optimal && optimalTrade.recommendation === 'sell'}
+            disabled={!sellRecommended}
+            optimal={sellRecommended}
+            confidence={optimalTrade ? optimalTrade.confidence : null}
+            recommendation={optimalTrade ? optimalTrade.recommendation : null}
             price={currentPrice}
           />
         </div>
