@@ -299,15 +299,47 @@ secretos de GitHub Actions).
 4. Verificar que `auth-service` puede conectarse a PostgreSQL y correr sus
    migraciones iniciales (creacion de tablas de usuarios).
 5. Verificar que `backend` puede descargar/cargar el checkpoint del
-   modelo y responder al endpoint de salud (`/health`).
+    modelo y responder al endpoint de salud (`/health`).
 6. Verificar que `frontend` puede alcanzar tanto a `auth-service` como a
-   `backend` a traves de sus URLs publicas de Render.
+    `backend` a traves de sus URLs publicas de Render.
 7. Hacer un primer login de prueba de punta a punta (Front -> Acceso ->
-   DB -> token -> Front -> Backend -> Modelo -> respuesta).
+    DB -> token -> Front -> Backend -> Modelo -> respuesta).
+
+> Nota: el paso 5 asume que el checkpoint del modelo ya fue descargado
+> durante el build de la imagen Docker (paso incluido en el workflow
+> `cd-backend.yml`).
 
 ---
 
-## 9. Fuente de precios de mercado
+## 9. Importación del modelo
+
+El modelo se descarga una sola vez durante el build de la imagen Docker y queda incluido dentro de la imagen final.
+
+```
+1. docker build (en tu maquina, WSL2)
+       │
+       ▼
+2. Dentro del build: la libreria "huggingface_hub"
+   descarga SOLO el checkpoint (best_model.pt)
+   desde tu repo en Hugging Face
+       │
+       ▼
+3. Ese archivo .pt queda copiado dentro de la imagen
+   Docker final, en /app/model/best_model.pt
+       │
+       ▼
+4. Cuando corres el contenedor localmente (docker run),
+   tu codigo Python (igual que inference.py) carga ese
+   .pt con torch.load() y usa el modelo para predecir
+```
+
+- El contenedor arranca instantáneo — no depende de Hugging Face en tiempo de ejecución.
+- Cada imagen desplegada es reproducible — sabes exactamente qué versión del modelo corre en producción.
+- Cuando actualizas el modelo (fine-tuning incremental), simplemente vuelves a correr el workflow de CD del backend.
+
+---
+
+## 10. Fuente de precios de mercado
 
 Este proyecto consume precios reales del tipo de cambio **PEN/USD** desde **Yahoo Finance** (Chart API).
 
@@ -326,7 +358,7 @@ Este proyecto consume precios reales del tipo de cambio **PEN/USD** desde **Yaho
 
 > Nota: este endpoint no es una API pública oficial de Yahoo, es el mismo que consume internamente Yahoo Finance. Está sujeto a cambios sin aviso. En entornos locales puede requerir reintentos/caché.
 
-## 10. Notas importantes
+## 11. Notas importantes
 
 - Este repositorio asume que el **entrenamiento** del modelo ya ocurrio
   en el repo `pen-usd-trading-model` (Hugging Face). Aqui solo se

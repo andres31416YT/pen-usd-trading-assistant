@@ -39,8 +39,6 @@ Thumbs.db
 .terraform.lock.hcl
 
 # Docker
-Dockerfile
-.dockerignore
 docker-compose.yml
 
 # Vite
@@ -49,3 +47,6 @@ docker-compose.yml
 # Misc
 *.md
 !README.md
+
+#Model
+best_model.pt
