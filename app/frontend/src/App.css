@@ -546,47 +546,114 @@ body {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  width: 280px;
+  width: 260px;
   background-color: #1a2332;
   border: 1px solid #334155;
   border-radius: 10px;
-  padding: 0.5rem;
+  padding: 0.6rem;
   z-index: 100;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   max-width: calc(100vw - 2rem);
 }
 
-.bank-overlay .bank-option {
-  padding: 0.6rem 0.8rem;
+.bank-overlay-header {
+  margin-bottom: 0.5rem;
+}
+
+.bank-search {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  background: #0f1923;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.bank-search:focus {
+  border-color: #00d4aa;
+}
+
+.bank-overlay-header + .bank-option,
+.bank-overlay-header + .no-bank-option {
+  margin-top: 0;
+}
+
+.bank-option {
+  padding: 0.5rem 0.7rem;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
-  transition: background-color 0.15s;
-  flex-wrap: wrap;
+  font-size: 0.82rem;
+  transition: background-color 0.15s, color 0.15s;
   gap: 0.3rem;
+  color: #c8ccd4;
 }
 
-.bank-overlay .bank-option:hover {
+.bank-option:hover {
   background-color: #1e293b;
+  color: #e0e0e0;
 }
 
-.bank-overlay .bank-option.selected {
+.bank-option.selected {
   background-color: #1e3a2f;
   color: #00d4aa;
 }
 
-.bank-overlay .spread-check {
-  font-size: 0.8rem;
-  color: #8892b0;
-  margin-left: auto;
-  margin-right: 0.5rem;
+.bank-option-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.bank-overlay .spread-check.active {
+.bank-option-spread {
+  font-size: 0.72rem;
+  color: #8892b0;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: nowrap;
+}
+
+.bank-option.selected .bank-option-spread {
   color: #00d4aa;
+}
+
+.bank-option-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid #4a5568;
+  flex-shrink: 0;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.bank-option.selected .bank-option-dot {
+  background-color: #00d4aa;
+  border-color: #00d4aa;
+}
+
+.no-bank-option .bank-option-dot {
+  border-style: dashed;
+}
+
+.no-bank-option.selected .bank-option-dot {
+  border-style: solid;
+  background-color: #00d4aa;
+  border-color: #00d4aa;
+}
+
+
+.bank-empty {
+  padding: 0.5rem;
+  text-align: center;
+  color: #8892b0;
+  font-size: 0.8rem;
 }
 
 /* ======== DASHBOARD MIDDLE ======== */

@@ -121,12 +121,8 @@ function Dashboard({ user }) {
 
   const handleSelectBank = (bank) => {
     setSelectedBank(bank);
-    setBankChecked(false);
+    setBankChecked(bank !== null);
     setBankOverlayOpen(false);
-  };
-
-  const handleToggleBank = () => {
-    setBankChecked((prev) => !prev);
   };
 
   const handleCreateOrder = async (side, amount) => {
@@ -201,10 +197,7 @@ function Dashboard({ user }) {
                 <BankSelector
                   banks={banks}
                   selectedBank={selectedBank}
-                  bankChecked={bankChecked}
                   onSelectBank={handleSelectBank}
-                  onToggleBank={handleToggleBank}
-                  onClose={() => setBankOverlayOpen(false)}
                 />
               )}
             </div>
