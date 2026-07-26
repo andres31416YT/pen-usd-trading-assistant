@@ -18,7 +18,7 @@ function Dashboard({ user }) {
   const [optimalTrade, setOptimalTrade] = useState(null);
   const [orders, setOrders] = useState([]);
   const [pnl, setPnl] = useState({ value: 0, percent: 0 });
-  const [timeframe, setTimeframe] = useState('5D');
+  const [timeframe, setTimeframe] = useState('1M');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bankOverlayOpen, setBankOverlayOpen] = useState(false);
