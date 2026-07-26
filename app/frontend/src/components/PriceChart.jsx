@@ -11,17 +11,20 @@ function PriceChart({ data }) {
     );
   }
 
-  const width = 400;
+  const width = 410;
   const height = 120;
   const padding = 10;
+  const rightAxisX = width - 22;
 
   const values = data.map((d) => d.price);
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
   const range = maxVal - minVal || 1;
 
+  const chartWidth = rightAxisX - padding;
+
   const points = data.map((d, i) => {
-    const x = padding + (i / Math.max(data.length - 1, 1)) * (width - 2 * padding);
+    const x = padding + (i / Math.max(data.length - 1, 1)) * chartWidth;
     const y = height - padding - ((d.price - minVal) / range) * (height - 2 * padding);
     return { x, y, value: d.price };
   });
@@ -32,7 +35,18 @@ function PriceChart({ data }) {
 
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map((fraction) => {
     const y = padding + fraction * (height - 2 * padding);
-    return <line key={fraction} x1={padding} y1={y} x2={width - padding} y2={y} className="chart-grid" />;
+    return <line key={fraction} x1={padding} y1={y} x2={rightAxisX} y2={y} className="chart-grid" />;
+  });
+
+  const priceLabels = [0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+    const price = maxVal - fraction * range;
+    const y = padding + fraction * (height - 2 * padding);
+    const label = price.toFixed(3);
+    return (
+      <text key={fraction} x={rightAxisX + 2} y={y + 3} textAnchor="start" className="chart-price-text">
+        {label}
+      </text>
+    );
   });
 
   const xLabels = data.length > 1
@@ -61,6 +75,8 @@ function PriceChart({ data }) {
       {points.length > 0 && (
         <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="3" fill={lineColor} />
       )}
+      <line x1={rightAxisX} y1={padding} x2={rightAxisX} y2={height - padding} stroke="#334155" strokeWidth="1" />
+      {priceLabels}
       {xLabels}
     </svg>
   );
