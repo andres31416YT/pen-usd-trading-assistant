@@ -189,23 +189,25 @@ function Dashboard({ user }) {
                 ? (balance ? `$${balance.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '---')
                 : '**.***,**'}
             </span>
-            <button
-              className="btn btn-sm btn-secondary"
-              onClick={() => setBankOverlayOpen(!bankOverlayOpen)}
-              style={{ marginLeft: 'auto', fontSize: '0.75rem' }}
-            >
-              Banco
-            </button>
-            {bankOverlayOpen && (
-              <BankSelector
-                banks={banks}
-                selectedBank={selectedBank}
-                bankChecked={bankChecked}
-                onSelectBank={handleSelectBank}
-                onToggleBank={handleToggleBank}
-                onClose={() => setBankOverlayOpen(false)}
-              />
-            )}
+            <div style={{ position: 'relative', display: 'inlineFlex', marginLeft: 'auto' }}>
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={() => setBankOverlayOpen(!bankOverlayOpen)}
+                style={{ fontSize: '0.75rem' }}
+              >
+                Banco
+              </button>
+              {bankOverlayOpen && (
+                <BankSelector
+                  banks={banks}
+                  selectedBank={selectedBank}
+                  bankChecked={bankChecked}
+                  onSelectBank={handleSelectBank}
+                  onToggleBank={handleToggleBank}
+                  onClose={() => setBankOverlayOpen(false)}
+                />
+              )}
+            </div>
           </div>
           {selectedBank && (
             <div style={{ fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.5rem' }}>
