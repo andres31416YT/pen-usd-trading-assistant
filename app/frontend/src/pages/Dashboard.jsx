@@ -144,6 +144,7 @@ function Dashboard({ user }) {
 
   const handleCreateOrder = async (side, amount) => {
     if (!selectedBank || !amount || parseFloat(amount) <= 0) return;
+    setError('');
     try {
       const res = await accountAPI.createOrder({
         pair: 'PEN/USD',
@@ -155,8 +156,8 @@ function Dashboard({ user }) {
       setOrders((prev) => [res, ...prev]);
       fetchData();
     } catch (err) {
-      const msg = err?.response?.data?.detail || 'Error al crear orden';
-      setError(msg);
+      const msg = err?.response?.data?.detail || err?.message || 'Error al crear orden';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
   };
 

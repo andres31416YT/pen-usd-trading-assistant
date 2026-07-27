@@ -1,9 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime
 from db.connection import get_db, Order, Bank
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+
+class OrderRequest(BaseModel):
+    pair: str
+    side: str
+    amount: float
+    price: float
+    bank_id: int = None
 
 
 def _get_balances(db: Session):
@@ -47,38 +56,34 @@ def list_orders(
 
 @router.post("")
 def create_order(
-    pair: str,
-    side: str,
-    amount: float,
-    price: float,
-    bank_id: int = None,
+    order_data: OrderRequest,
     db: Session = Depends(get_db),
 ):
     usd_balance, pen_balance = _get_balances(db)
 
-    if side == "buy":
-        cost_usd = amount * price
+    if order_data.side == "buy":
+        cost_usd = order_data.amount * order_data.price
         if cost_usd > usd_balance:
             raise HTTPException(
                 status_code=400,
                 detail=f"Saldo insuficiente en USD. Necesitas {cost_usd:.2f} USD pero solo tienes {usd_balance:.2f} USD.",
             )
-    elif side == "sell":
-        if amount > usd_balance:
+    elif order_data.side == "sell":
+        if order_data.amount > usd_balance:
             raise HTTPException(
                 status_code=400,
-                detail=f"Saldo insuficiente en USD. Quieres vender {amount:.2f} USD pero solo tienes {usd_balance:.2f} USD.",
+                detail=f"Saldo insuficiente en USD. Quieres vender {order_data.amount:.2f} USD pero solo tienes {usd_balance:.2f} USD.",
             )
     else:
-        raise HTTPException(status_code=400, detail=f"Lado inválido: {side}. Debe ser 'buy' o 'sell'.")
+        raise HTTPException(status_code=400, detail=f"Lado inválido: {order_data.side}. Debe ser 'buy' o 'sell'.")
 
     order = Order(
         user_id=1,
-        pair=pair,
-        side=side,
-        amount=amount,
-        price=price,
-        bank_id=bank_id,
+        pair=order_data.pair,
+        side=order_data.side,
+        amount=order_data.amount,
+        price=order_data.price,
+        bank_id=order_data.bank_id,
         status="filled",
     )
     db.add(order)
