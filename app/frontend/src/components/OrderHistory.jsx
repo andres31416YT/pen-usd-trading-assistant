@@ -23,7 +23,7 @@ function OrderHistory({ orders }) {
           <div key={order.id} className="order-item">
             <span className={`order-side ${order.side}`}>{order.side.toUpperCase()}</span>
             <div className="order-details">
-              <span className="order-amount">{order.amount} PEN</span>
+              <span className="order-amount">{order.amount} {order.side === 'buy' ? 'PEN' : 'USD'}</span>
               <span className="order-price">@ {order.price.toFixed(4)} USD</span>
             </div>
             <span className="order-time">{formatDate(order.created_at)}</span>

@@ -16,8 +16,8 @@ def get_balance(db: Session = Depends(get_db)):
             usd_balance -= o.amount * o.price
             pen_balance += o.amount
         elif o.side == "sell":
-            usd_balance += o.amount * o.price
-            pen_balance -= o.amount
+            usd_balance -= o.amount
+            pen_balance += o.amount / o.price
     return {
         "usd_balance": round(usd_balance, 2),
         "pen_balance": round(pen_balance, 2),
@@ -36,7 +36,7 @@ def get_sol_balance(db: Session = Depends(get_db)):
         if o.side == "buy":
             pen_balance += o.amount
         elif o.side == "sell":
-            pen_balance -= o.amount
+            pen_balance += o.amount / o.price
     return {
         "balance": round(pen_balance, 2),
         "currency": "PEN",
@@ -80,8 +80,8 @@ def get_balance_history(
             day_usd_balances[date_key] -= o.amount * o.price
             day_pen_balances[date_key] += o.amount
         elif o.side == "sell":
-            day_usd_balances[date_key] += o.amount * o.price
-            day_pen_balances[date_key] -= o.amount
+            day_usd_balances[date_key] -= o.amount
+            day_pen_balances[date_key] += o.amount / o.price
 
     start_date = datetime.utcnow() - timedelta(days=days)
     current_date = start_date

@@ -4,6 +4,10 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price, confide
   const [inputAmount, setInputAmount] = useState('');
   const [error, setError] = useState('');
 
+  const isSell = side === 'sell';
+  const amountUnit = isSell ? 'USD' : 'PEN';
+  const balanceUnit = isSell ? 'USD' : 'PEN';
+
   const handleExecute = () => {
     const val = parseFloat(inputAmount);
     if (!isNaN(val) && val > 0) {
@@ -50,11 +54,11 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price, confide
           inputMode="numeric"
           disabled={disabled}
         />
-        <span className="amount-unit">PEN</span>
+        <span className="amount-unit">{amountUnit}</span>
       </div>
       {availableBalance !== undefined && (
         <div style={{ fontSize: '0.7rem', color: '#8892b0', marginBottom: '0.25rem', textAlign: 'center' }}>
-          Disponible: {availableBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PEN
+          Disponible: {availableBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {balanceUnit}
         </div>
       )}
       {price && (

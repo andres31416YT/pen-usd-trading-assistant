@@ -175,7 +175,7 @@ function Dashboard({ user }) {
     ? balance.usd_balance / adjustedCurrentPrice
     : undefined;
 
-  const availableSellBalance = balance ? balance.pen_balance : undefined;
+  const availableSellBalance = balance ? balance.usd_balance : undefined;
 
   return (
     <div>

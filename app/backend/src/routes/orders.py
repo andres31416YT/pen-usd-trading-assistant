@@ -15,8 +15,8 @@ def _get_balances(db: Session):
             usd_balance -= o.amount * o.price
             pen_balance += o.amount
         elif o.side == "sell":
-            usd_balance += o.amount * o.price
-            pen_balance -= o.amount
+            usd_balance -= o.amount
+            pen_balance += o.amount / o.price
     return usd_balance, pen_balance
 
 
@@ -64,10 +64,10 @@ def create_order(
                 detail=f"Saldo insuficiente en USD. Necesitas {cost_usd:.2f} USD pero solo tienes {usd_balance:.2f} USD.",
             )
     elif side == "sell":
-        if amount > pen_balance:
+        if amount > usd_balance:
             raise HTTPException(
                 status_code=400,
-                detail=f"Saldo insuficiente en PEN. Quieres vender {amount:.2f} PEN pero solo tienes {pen_balance:.2f} PEN.",
+                detail=f"Saldo insuficiente en USD. Quieres vender {amount:.2f} USD pero solo tienes {usd_balance:.2f} USD.",
             )
     else:
         raise HTTPException(status_code=400, detail=f"Lado inválido: {side}. Debe ser 'buy' o 'sell'.")
