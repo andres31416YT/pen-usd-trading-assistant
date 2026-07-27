@@ -171,9 +171,7 @@ function Dashboard({ user }) {
   const buyRecommended = optimalTrade && optimalTrade.recommendation === 'buy';
   const sellRecommended = optimalTrade && optimalTrade.recommendation === 'sell';
 
-  const availableBuyBalance = balance && adjustedCurrentPrice
-    ? balance.usd_balance / adjustedCurrentPrice
-    : undefined;
+  const availableBuyBalance = balance ? balance.pen_balance : undefined;
 
   const availableSellBalance = balance ? balance.usd_balance : undefined;
 
