@@ -44,7 +44,7 @@ def _seed_banks():
     try:
         seed_banks = [
             {"name": "Sin banco", "spread_multiplier": 1.0},
-            {"name": "BCP", "spread_multiplier": 3.40 / 3.760},
+            {"name": "BCP", "spread_multiplier": 3.3760 / 3.4},
         ]
         for seed in seed_banks:
             existing = db.query(Bank).filter(Bank.name == seed["name"]).first()
