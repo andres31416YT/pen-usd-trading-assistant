@@ -38,7 +38,6 @@ export const bankAPI = {
 
 export const accountAPI = {
   getBalance: () => tradingClient.get('/account/balance'),
-  getSolBalance: () => tradingClient.get('/account/sol-balance'),
   getBalanceHistory: (days) => tradingClient.get('/account/balance-history', { params: { days } }),
   getOptimalTrade: () => tradingClient.get('/account/optimal-trade'),
   getOrders: () => tradingClient.get('/orders'),

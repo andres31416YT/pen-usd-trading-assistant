@@ -19,7 +19,6 @@ function Dashboard({ user }) {
     }
   }, [banks, selectedBank]);
   const [balance, setBalance] = useState(null);
-  const [solBalance, setSolBalance] = useState(null);
   const [balanceHistory, setBalanceHistory] = useState([]);
   const [currentPrice, setCurrentPrice] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
@@ -33,7 +32,6 @@ function Dashboard({ user }) {
   const [bankOverlayOpen, setBankOverlayOpen] = useState(false);
   const [bankChecked, setBankChecked] = useState(false);
   const [balanceVisible, setBalanceVisible] = useState(true);
-  const [solBalanceVisible, setSolBalanceVisible] = useState(true);
 
   const EyeOpenIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,17 +53,15 @@ function Dashboard({ user }) {
     setError('');
     const currentSpread = selectedBank?.spread_multiplier ?? 1;
     try {
-      const [banksRes, balanceRes, historyRes, predRes, ordersRes, solBalanceRes] = await Promise.all([
+      const [banksRes, balanceRes, historyRes, predRes, ordersRes] = await Promise.all([
         bankAPI.listBanks(),
         accountAPI.getBalance(),
         accountAPI.getBalanceHistory(30),
         tradingAPI.getPrediction({ spread_multiplier: currentSpread }),
         accountAPI.getOrders(),
-        accountAPI.getSolBalance(),
       ]);
       setBanks(banksRes);
       setBalance(balanceRes);
-      setSolBalance(solBalanceRes);
       setBalanceHistory(historyRes);
       setOrders(ordersRes);
 
@@ -82,8 +78,8 @@ function Dashboard({ user }) {
         });
       }
 
-      const initBal = balanceRes?.initial_balance || 10000;
-      const curBal = balanceRes?.balance || initBal;
+      const initBal = balanceRes?.initial_balance_usd || 10000;
+      const curBal = balanceRes?.usd_balance || initBal;
       const totalPnl = curBal - initBal;
       const pnlPercent = initBal > 0 ? (totalPnl / initBal) * 100 : 0;
       setPnl({ value: totalPnl, percent: pnlPercent });
@@ -179,7 +175,7 @@ function Dashboard({ user }) {
       <div className="dashboard-top-row">
         <div className="balance-card">
           <div className="balance-card-header">
-            <span className="section-header">Saldo de cuenta</span>
+            <span className="section-header">Saldo en Dólares</span>
             <button
               className="btn-toggle-visibility"
               onClick={() => setBalanceVisible(!balanceVisible)}
@@ -191,10 +187,12 @@ function Dashboard({ user }) {
           <div className="balance-row">
             <span className="section-value">
               {balanceVisible
-                ? (balance ? balance.balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '---')
+                ? (balance
+                    ? balance.usd_balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : '---')
                 : '**.***,**'}
             </span>
-            <span className="balance-currency">{balance ? balance.currency : ''}</span>
+            <span className="balance-currency">{balance ? balance.currency_usd : ''}</span>
           </div>
         </div>
 
@@ -203,7 +201,9 @@ function Dashboard({ user }) {
             <span className="chart-title">Balance</span>
             <span className="chart-value">
               {balanceVisible
-                ? (balance ? `$${balance.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}` : '---')
+                ? (balance
+                    ? `$${balance.usd_balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
+                    : '---')
                 : '**.***,**'}
             </span>
             <div style={{ position: 'relative', display: 'inlineFlex', marginLeft: 'auto' }}>
@@ -237,29 +237,21 @@ function Dashboard({ user }) {
             <span className="section-header">Saldo en Soles</span>
             <button
               className="btn-toggle-visibility"
-              onClick={() => setSolBalanceVisible(!solBalanceVisible)}
-              title={solBalanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
+              onClick={() => setBalanceVisible(!balanceVisible)}
+              title={balanceVisible ? 'Ocultar saldo' : 'Mostrar saldo'}
             >
-              {solBalanceVisible ? <EyeOpenIcon /> : <EyeClosedIcon />}
+              {balanceVisible ? <EyeOpenIcon /> : <EyeClosedIcon />}
             </button>
           </div>
           <div className="balance-row">
             <span className="section-value sol-value">
-              {solBalanceVisible
-                ? (solBalance
-                    ? solBalance.balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              {balanceVisible
+                ? (balance
+                    ? balance.pen_balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                     : '---')
                 : '**.***,**'}
             </span>
-            <span className="balance-currency">{solBalance ? solBalance.currency : ''}</span>
-          </div>
-          <div className="balance-row sol-usd-row">
-            <span className="balance-label">Equivalente USD</span>
-            <span className="section-value sol-usd-value">
-              {solBalanceVisible && solBalance
-                ? `$${solBalance.usd_balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`
-                : '---'}
-            </span>
+            <span className="balance-currency">{balance ? balance.currency_pen : ''}</span>
           </div>
         </div>
       </div>

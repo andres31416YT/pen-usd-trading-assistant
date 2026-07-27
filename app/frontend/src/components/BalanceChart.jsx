@@ -15,15 +15,15 @@ function BalanceChart({ data }) {
   const height = 120;
   const padding = 10;
 
-  const values = data.map((d) => d.balance);
+  const values = data.map((d) => d.usd_balance);
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
   const range = maxVal - minVal || 1;
 
   const points = data.map((d, i) => {
     const x = padding + (i / Math.max(data.length - 1, 1)) * (width - 2 * padding);
-    const y = height - padding - ((d.balance - minVal) / range) * (height - 2 * padding);
-    return { x, y, value: d.balance };
+    const y = height - padding - ((d.usd_balance - minVal) / range) * (height - 2 * padding);
+    return { x, y, value: d.usd_balance };
   });
 
   const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');

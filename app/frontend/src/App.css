@@ -381,13 +381,6 @@ body {
   padding: 1.5rem;
 }
 
-.balance-card .balance-label {
-  font-size: 0.8rem;
-  color: #8892b0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .balance-card .balance-value {
   font-size: 2rem;
   font-weight: 700;
@@ -440,25 +433,6 @@ body {
 
 .sol-value {
   color: #fbbf24;
-}
-
-.sol-usd-value {
-  color: #f59e0b;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.sol-usd-row {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #3d3520;
-}
-
-.balance-label {
-  font-size: 0.75rem;
-  color: #8892b0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .btn-toggle-visibility {
