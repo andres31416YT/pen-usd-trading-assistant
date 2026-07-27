@@ -104,9 +104,9 @@ def _reconstruct_model(checkpoint: dict) -> PatchTSTForecaster:
 def _generar_senal(precio_actual: float, precio_predicho: float,
                    buy_threshold_pct: float = 0.5, sell_threshold_pct: float = -0.5):
     cambio_pct = ((precio_predicho - precio_actual) / precio_actual) * 100
-    if cambio_pct <= sell_threshold_pct:
+    if cambio_pct >= buy_threshold_pct:
         accion = "buy"
-    elif cambio_pct >= buy_threshold_pct:
+    elif cambio_pct <= sell_threshold_pct:
         accion = "sell"
     else:
         accion = "neutral"
