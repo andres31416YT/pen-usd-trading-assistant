@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 import bcrypt
 import os
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -23,7 +24,14 @@ security = HTTPBearer()
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    for attempt in range(1, 6):
+        try:
+            Base.metadata.create_all(bind=engine)
+            break
+        except Exception as e:
+            if attempt == 5:
+                raise RuntimeError(f"Failed to initialize database after 5 attempts: {e}") from e
+            time.sleep(2 * attempt)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

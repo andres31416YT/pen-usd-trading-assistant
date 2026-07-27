@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import os
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -34,8 +35,15 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
-    _seed_banks()
+    for attempt in range(1, 6):
+        try:
+            Base.metadata.create_all(bind=engine)
+            _seed_banks()
+            break
+        except Exception as e:
+            if attempt == 5:
+                raise RuntimeError(f"Failed to initialize database after 5 attempts: {e}") from e
+            time.sleep(2 * attempt)
 
 
 def _seed_banks():
