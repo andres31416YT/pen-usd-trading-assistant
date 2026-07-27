@@ -147,7 +147,7 @@ function PriceChart({ data }) {
           }}
         >
           <div className="tooltip-date">{formatDate(hoverData.date)}</div>
-          <div className="tooltip-price">S/. {hoverData.price.toFixed(3)}</div>
+          <div className="tooltip-price">S/. {hoverData.price.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</div>
         </div>
       )}
     </div>
