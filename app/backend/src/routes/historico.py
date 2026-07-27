@@ -48,23 +48,6 @@ def get_price_history(
     db: Session = Depends(get_db),
 ):
     effective_pair = pair_query or pair or "PEN/USD"
-    since = datetime.utcnow() - timedelta(days=TIMEFRAME_DAYS.get(timeframe, 30))
-
-    orders = db.query(Order).filter(
-        Order.pair == effective_pair,
-        Order.created_at >= since,
-    ).order_by(Order.created_at.asc()).all()
-
-    if orders:
-        data = [
-            {
-                "date": o.created_at.isoformat(),
-                "pair": o.pair,
-                "price": o.price,
-            }
-            for o in orders
-        ]
-        return {"pair": effective_pair, "data": data, "source": "orders"}
 
     try:
         symbol_map = {
