@@ -6,6 +6,20 @@ from db.connection import get_db, Order, Bank
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 
+def _get_balances(db: Session):
+    orders = db.query(Order).all()
+    usd_balance = 10000.0
+    pen_balance = 0.0
+    for o in orders:
+        if o.side == "buy":
+            usd_balance -= o.amount * o.price
+            pen_balance += o.amount
+        elif o.side == "sell":
+            usd_balance += o.amount * o.price
+            pen_balance -= o.amount
+    return usd_balance, pen_balance
+
+
 @router.get("")
 def list_orders(
     pair: str = None,
@@ -40,6 +54,24 @@ def create_order(
     bank_id: int = None,
     db: Session = Depends(get_db),
 ):
+    usd_balance, pen_balance = _get_balances(db)
+
+    if side == "buy":
+        cost_usd = amount * price
+        if cost_usd > usd_balance:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Saldo insuficiente en USD. Necesitas {cost_usd:.2f} USD pero solo tienes {usd_balance:.2f} USD.",
+            )
+    elif side == "sell":
+        if amount > pen_balance:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Saldo insuficiente en PEN. Quieres vender {amount:.2f} PEN pero solo tienes {pen_balance:.2f} PEN.",
+            )
+    else:
+        raise HTTPException(status_code=400, detail=f"Lado inválido: {side}. Debe ser 'buy' o 'sell'.")
+
     order = Order(
         user_id=1,
         pair=pair,

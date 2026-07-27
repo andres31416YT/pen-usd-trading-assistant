@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 
-function BuySellCard({ side, label, onExecute, disabled, optimal, price, confidence, recommendation }) {
+function BuySellCard({ side, label, onExecute, disabled, optimal, price, confidence, recommendation, availableBalance }) {
   const [inputAmount, setInputAmount] = useState('');
+  const [error, setError] = useState('');
 
   const handleExecute = () => {
     const val = parseFloat(inputAmount);
     if (!isNaN(val) && val > 0) {
+      if (availableBalance !== undefined && val > availableBalance) {
+        setError(`Cantidad excede el saldo disponible (${availableBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`);
+        return;
+      }
       onExecute(val);
       setInputAmount('');
+      setError('');
     }
   };
 
@@ -39,16 +45,26 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price, confide
           className="amount-input"
           type="text"
           value={inputAmount}
-          onChange={(e) => setInputAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+          onChange={(e) => { setInputAmount(e.target.value.replace(/[^0-9.]/g, "")); setError(''); }}
           placeholder="0.00"
           inputMode="numeric"
           disabled={disabled}
         />
         <span className="amount-unit">PEN</span>
       </div>
+      {availableBalance !== undefined && (
+        <div style={{ fontSize: '0.7rem', color: '#8892b0', marginBottom: '0.25rem', textAlign: 'center' }}>
+          Disponible: {availableBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PEN
+        </div>
+      )}
       {price && (
         <div style={{ fontSize: '0.75rem', color: '#8892b0', marginBottom: '0.5rem', textAlign: 'center' }}>
           Precio ref: {price.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD/PEN
+        </div>
+      )}
+      {error && (
+        <div style={{ fontSize: '0.75rem', color: '#ef4444', marginBottom: '0.5rem', textAlign: 'center' }}>
+          {error}
         </div>
       )}
       <button

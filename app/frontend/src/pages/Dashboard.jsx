@@ -154,8 +154,9 @@ function Dashboard({ user }) {
       });
       setOrders((prev) => [res, ...prev]);
       fetchData();
-    } catch {
-      setError('Error al crear orden');
+    } catch (err) {
+      const msg = err?.response?.data?.detail || 'Error al crear orden';
+      setError(msg);
     }
   };
 
@@ -169,6 +170,12 @@ function Dashboard({ user }) {
 
   const buyRecommended = optimalTrade && optimalTrade.recommendation === 'buy';
   const sellRecommended = optimalTrade && optimalTrade.recommendation === 'sell';
+
+  const availableBuyBalance = balance && adjustedCurrentPrice
+    ? balance.usd_balance / adjustedCurrentPrice
+    : undefined;
+
+  const availableSellBalance = balance ? balance.pen_balance : undefined;
 
   return (
     <div>
@@ -309,6 +316,7 @@ function Dashboard({ user }) {
             confidence={optimalTrade ? optimalTrade.confidence : null}
             recommendation={optimalTrade ? optimalTrade.recommendation : null}
             price={adjustedCurrentPrice}
+            availableBalance={availableBuyBalance}
           />
           <BuySellCard
             side="sell"
@@ -319,6 +327,7 @@ function Dashboard({ user }) {
             confidence={optimalTrade ? optimalTrade.confidence : null}
             recommendation={optimalTrade ? optimalTrade.recommendation : null}
             price={adjustedCurrentPrice}
+            availableBalance={availableSellBalance}
           />
         </div>
 
