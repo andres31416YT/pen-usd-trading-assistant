@@ -65,7 +65,7 @@ function PriceChart({ data }) {
   const isUp = data.length >= 2 && data[data.length - 1].price >= data[0].price;
   const lineColor = isUp ? '#00d4aa' : '#ef4444';
 
-  const handleMouseMove = useCallback((e) => {
+const handleMouseMove = useCallback((e) => {
     if (!chartRef.current) return;
     const rect = chartRef.current.getBoundingClientRect();
     const svgWidth = rect.width;
@@ -138,11 +138,11 @@ function PriceChart({ data }) {
         {priceLabels}
         {xLabels}
       </svg>
-      {hoverData && (
+{hoverData && hoverPoint && (
         <div
           className="chart-tooltip"
           style={{
-            left: `${Math.min(mouseX, 380)}px`,
+            left: `${mouseX}px`,
             top: `${(hoverPoint.y / height) * 100}%`,
           }}
         >
