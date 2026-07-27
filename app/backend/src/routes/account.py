@@ -2,8 +2,16 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from db.connection import get_db, Order, Bank
+from market_data.yahoo import get_latest_price as yahoo_get_latest_price
 
 router = APIRouter(prefix="/account", tags=["account"])
+
+
+def _latest_pen_price() -> float | None:
+    try:
+        return yahoo_get_latest_price("PEN=X")
+    except Exception:
+        return None
 
 
 @router.get("/balance")
@@ -18,6 +26,26 @@ def get_balance(db: Session = Depends(get_db)):
     return {
         "balance": round(balance, 2),
         "currency": "USD",
+        "initial_balance": 10000.0,
+    }
+
+
+@router.get("/sol-balance")
+def get_sol_balance(db: Session = Depends(get_db)):
+    orders = db.query(Order).all()
+    usd_balance = 10000.0
+    for o in orders:
+        if o.side == "buy":
+            usd_balance -= o.amount * o.price
+        elif o.side == "sell":
+            usd_balance += o.amount * o.price
+    pen_price = _latest_pen_price() or 3.76
+    sol_balance = usd_balance * pen_price
+    return {
+        "balance": round(sol_balance, 2),
+        "currency": "PEN",
+        "usd_balance": round(usd_balance, 2),
+        "pen_price": round(pen_price, 4),
         "initial_balance": 10000.0,
     }
 

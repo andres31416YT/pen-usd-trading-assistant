@@ -368,7 +368,7 @@ body {
 /* ======== DASHBOARD TOP ROW (BALANCE + CHART) ======== */
 .dashboard-top-row {
   display: grid;
-  grid-template-columns: 1fr 2fr auto;
+  grid-template-columns: 1fr 2fr 1fr;
   gap: 1rem;
   margin-bottom: 1.5rem;
   align-items: start;
@@ -426,6 +426,39 @@ body {
   color: #8892b0;
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* ======== SOL BALANCE CARD ======== */
+.sol-balance-card {
+  background: linear-gradient(135deg, #1a1500 0%, #2a2010 100%);
+  border: 1px solid #3d3520;
+}
+
+.sol-balance-card .section-header {
+  color: #fbbf24;
+}
+
+.sol-value {
+  color: #fbbf24;
+}
+
+.sol-usd-value {
+  color: #f59e0b;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.sol-usd-row {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #3d3520;
+}
+
+.balance-label {
+  font-size: 0.75rem;
+  color: #8892b0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .btn-toggle-visibility {
@@ -1011,6 +1044,10 @@ body {
   }
 
   .dashboard-top-row .balance-card {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-top-row .sol-balance-card {
     grid-column: 1 / -1;
   }
 
