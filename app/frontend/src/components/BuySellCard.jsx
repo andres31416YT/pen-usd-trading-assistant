@@ -37,12 +37,11 @@ function BuySellCard({ side, label, onExecute, disabled, optimal, price, confide
       <div className="amount-row">
         <input
           className="amount-input"
-          type="number"
+          type="text"
           value={inputAmount}
-          onChange={(e) => setInputAmount(e.target.value)}
+          onChange={(e) => setInputAmount(e.target.value.replace(/[^0-9.]/g, ""))}
           placeholder="0.00"
-          step="0.01"
-          min="0"
+          inputMode="numeric"
           disabled={disabled}
         />
         <span className="amount-unit">PEN</span>

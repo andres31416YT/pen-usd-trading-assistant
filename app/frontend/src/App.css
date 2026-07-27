@@ -214,7 +214,6 @@ body {
   border-radius: 6px;
   color: #e0e0e0;
   font-size: 1rem;
-  -webkit-appearance: none;
 }
 
 .form-group input:focus {
@@ -888,6 +887,7 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 
 .buysell-card .amount-unit {
   font-size: 0.85rem;
